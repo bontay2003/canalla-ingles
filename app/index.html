@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* Layout: una columna tipo "tarjeta de inspección", contador de 10 puntos arriba, chuleta en hoja deslizante */
+/* Layout: una columna tipo "tarjeta de inspección"; dos modos (Reto diario / Práctica libre); chuleta en hoja a pantalla completa */
 :root{
   --bg:#ECEFF1; --surface:#FFFFFF; --ink:#16212B; --muted:#5B6B78; --line:#CBD3D9;
   --accent:#D99A00; --accent-bg:#FFF3D1; --ok:#1E7A4C; --ok-bg:#E3F2EA; --bad:#B42318; --bad-bg:#FBE7E5;
@@ -21,28 +21,41 @@
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45}
 .wrap{max-width:540px;margin:0 auto;padding-block:20px 48px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
-  display:flex;flex-direction:column;gap:18px}
+  display:flex;flex-direction:column;gap:16px}
 header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 h1{font-family:var(--display);font-weight:700;font-size:1.5rem;margin:0;letter-spacing:.01em}
 .head-right{display:flex;align-items:center;gap:10px}
-.meta{font-family:var(--mono);font-size:.75rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+button{font:inherit;cursor:pointer;border-radius:5px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:12px 14px}
+button:focus-visible,input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600;font-size:1.05rem;padding:14px}
+.small-btn{font-size:.85rem;padding:6px 12px;font-family:var(--mono)}
+
+.streak{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:4px 10px 4px 6px}
+.streak b{font-family:var(--display);font-size:1.25rem;font-variant-numeric:tabular-nums;min-width:1.6em;text-align:center;
+  background:var(--accent);color:#16212B;border-radius:3px;padding:0 4px;line-height:1.35}
+.streak span{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;color:var(--muted);line-height:1.2}
+
+.modes{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+.modes button{border:0;border-radius:0;padding:11px 8px;font-weight:600;background:transparent}
+.modes button+button{border-left:1px solid var(--line)}
+.modes button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
 .gauge{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
 .gauge i{height:10px;border-radius:2px;background:var(--line);transition:background .2s}
 .gauge i.on{background:var(--accent)}
+.gauge i:nth-child(5),.gauge i:nth-child(8){box-shadow:inset 2px 0 0 var(--ink)}
 .gauge-row{display:flex;flex-direction:column;gap:6px}
 .gauge-label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .gauge-label b{color:var(--ink)}
 .tiers{display:grid;grid-template-columns:4fr 3fr 3fr;gap:4px;font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;color:var(--muted)}
 .tiers span{border-top:1px solid var(--line);padding-top:3px}
 .tiers span.now{color:var(--ink);border-top:2px solid var(--accent);font-weight:600}
-.streak{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:4px 10px 4px 6px}
-.streak b{font-family:var(--display);font-size:1.25rem;font-variant-numeric:tabular-nums;min-width:1.6em;text-align:center;
-  background:var(--accent);color:#16212B;border-radius:3px;padding:0 4px;line-height:1.35}
-.streak span{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;color:var(--muted);line-height:1.2}
-.streak-msg{margin:0;font-size:.88rem;padding:8px 12px;border-radius:4px;border:1px solid var(--line);background:var(--surface)}
-.streak-msg.warn{border-color:var(--accent);background:var(--accent-bg)}
-.streak-msg.lost{border-color:var(--bad);background:var(--bad-bg);color:var(--bad)}
-.streak-msg.good{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
+.tiers span.locked{opacity:.55}
+.msg{margin:0;font-size:.88rem;padding:8px 12px;border-radius:4px;border:1px solid var(--line);background:var(--surface)}
+.msg.warn{border-color:var(--accent);background:var(--accent-bg)}
+.msg.lost{border-color:var(--bad);background:var(--bad-bg);color:var(--bad)}
+.msg.good{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
 
 .card{display:grid;perspective:1200px}
 .face{grid-area:1/1;position:relative;background:var(--surface);border:1px solid var(--line);border-radius:6px;min-height:320px;
@@ -67,29 +80,39 @@ h1{font-family:var(--display);font-weight:700;font-size:1.5rem;margin:0;letter-s
 mark{background:var(--accent-bg);color:inherit;border-bottom:2px solid var(--accent);padding:0 .12em;border-radius:2px}
 .note{color:var(--muted);font-size:.92rem;margin:0}
 .rule{display:flex;flex-direction:column;gap:6px;background:var(--accent-bg);border-radius:4px;padding:10px 12px;font-size:.95rem}
-.rule b{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;color:var(--muted);font-weight:600}
+.rule>b{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;color:var(--muted);font-weight:600}
 .link{background:none;border:0;padding:0;color:var(--ink);text-decoration:underline;text-underline-offset:3px;font-size:.88rem;align-self:flex-start}
 .spacer{flex:1}
-button{font:inherit;cursor:pointer;border-radius:5px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:12px 14px}
-button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600;font-size:1.05rem;padding:14px}
-.small-btn{font-size:.85rem;padding:6px 12px;font-family:var(--mono)}
 .front-actions{display:grid;grid-template-columns:auto 1fr;gap:10px}
 .answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .btn-ok,.btn-bad{display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:600;font-size:1.05rem;padding:12px 8px}
 .btn-ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
 .btn-bad{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
 .btn-ok small,.btn-bad small{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;font-weight:500}
+.loading{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:24px 20px;color:var(--muted)}
 
-.done{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:24px 20px;display:flex;flex-direction:column;gap:12px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.panel h2{font-family:var(--display);margin:0;font-size:1.35rem}
+.panel p{margin:0;color:var(--muted)}
 .stamp{align-self:flex-start;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--ok);
   border:2px solid var(--ok);padding:4px 10px;border-radius:3px;transform:rotate(-3deg)}
-.done h2{font-family:var(--display);margin:0;font-size:1.4rem}
-.done p{margin:0;color:var(--muted)}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .stats div{border:1px solid var(--line);border-radius:4px;padding:10px;text-align:center}
 .stats b{display:block;font-family:var(--display);font-size:1.5rem;font-variant-numeric:tabular-nums}
 .stats span{font-size:.75rem;color:var(--muted)}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+legend{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;color:var(--muted);font-weight:600;padding:0;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips label{position:relative;cursor:pointer}
+.chips input{position:absolute;opacity:0;pointer-events:none}
+.chips span{display:inline-flex;align-items:baseline;gap:6px;border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:.92rem;background:var(--surface)}
+.chips span small{font-family:var(--mono);font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.chips input:checked+span{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chips input:checked+span small{color:var(--bg);opacity:.75}
+.score{display:flex;justify-content:space-between;align-items:center;gap:10px;font-family:var(--mono);font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.score b.ok{color:var(--ok)} .score b.bad{color:var(--bad)}
 
 details.list{background:var(--surface);border:1px solid var(--line);border-radius:6px}
 details.list summary{padding:12px 16px;cursor:pointer;font-weight:600;display:flex;justify-content:space-between;gap:8px}
@@ -99,7 +122,14 @@ details.list li{padding:8px 0;border-top:1px solid var(--line);display:flex;flex
 details.list li b{font-weight:600}
 details.list li span{color:var(--muted);font-size:.88rem}
 .empty{color:var(--muted);font-size:.9rem}
+.more{color:var(--muted);font-size:.85rem;font-style:italic}
 .sync{font-family:var(--mono);font-size:.7rem;color:var(--muted);text-align:center}
+.progress-all{display:flex;flex-direction:column;gap:6px;font-size:.85rem;color:var(--muted)}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok)}
+
+.install-row{display:flex;flex-direction:column;gap:10px}
+.install-row .rule span b{font-family:inherit;font-size:inherit;letter-spacing:0;color:var(--ink)}
 
 /* Chuleta */
 .sheet{position:fixed;inset:0;z-index:20;background:var(--bg);overflow-y:auto;
@@ -110,15 +140,16 @@ details.list li span{color:var(--muted);font-size:.88rem}
   display:flex;flex-direction:column;gap:10px}
 .sheet-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .sheet-top h2{font-family:var(--display);margin:0;font-size:1.3rem}
-.tabs{display:flex;gap:6px}
-.tabs button{padding:8px 14px;font-size:.9rem}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{padding:8px 12px;font-size:.88rem}
 .tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .sheet-body{max-width:640px;margin:0 auto;padding-block:16px 40px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   display:flex;flex-direction:column;gap:14px}
-.sec{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;scroll-margin-top:120px;transition:box-shadow .3s}
+.sec{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;scroll-margin-top:130px;transition:box-shadow .3s}
 .sec.flash{box-shadow:0 0 0 3px var(--accent)}
 .sec h3{font-family:var(--display);margin:0;font-size:1.15rem}
+.sec h3 small{font-family:var(--mono);font-size:.7rem;color:var(--muted);font-weight:500;letter-spacing:.06em;margin-left:6px}
 .sec p{margin:0;font-size:.93rem}
 .sec .use{color:var(--muted)}
 .tbl{overflow-x:auto}
@@ -127,15 +158,13 @@ td,th{text-align:left;padding:6px 8px;border-top:1px solid var(--line);vertical-
 th{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;color:var(--muted);font-weight:600;border-top:0}
 td:first-child{font-weight:600;white-space:nowrap}
 .gold{background:var(--accent-bg);border-color:var(--accent)}
-.install-row{display:flex;flex-direction:column;gap:10px}
-.install-row .rule span b{font-family:inherit;font-size:inherit;letter-spacing:0;color:var(--ink)}
 </style>
 
 <div class="wrap">
   <header>
     <h1>Canalla Inglés</h1>
     <div class="head-right">
-      <div class="streak" title="Días seguidos completados"><b id="streakN">0</b><span id="streakL">DÍAS<br>SEGUIDOS</span></div>
+      <div class="streak" title="Días seguidos completando el reto diario"><b id="streakN">0</b><span id="streakL">DÍAS<br>SEGUIDOS</span></div>
       <button class="small-btn" id="openSheet">Chuleta</button>
     </div>
   </header>
@@ -149,14 +178,63 @@ td:first-child{font-weight:600;white-space:nowrap}
     </div>
   </div>
 
-  <div class="gauge-row">
+  <div class="modes" role="group" aria-label="Modo">
+    <button id="modeDaily" aria-pressed="true">Reto diario</button>
+    <button id="modePractice" aria-pressed="false">Práctica libre</button>
+  </div>
+
+  <!-- Reto diario: cabecera -->
+  <div id="dailyHead" class="gauge-row">
     <div class="gauge-label"><span>Puntos de hoy</span><span><b id="pts">0</b> / 10</span></div>
     <div class="gauge" id="gauge"></div>
-    <div class="tiers"><span id="t1">FÁCIL</span><span id="t2">MEDIO</span><span id="t3">DIFÍCIL</span></div>
+    <div class="tiers"><span id="t1">A1–A2</span><span id="t2">B1</span><span id="t3">B2</span></div>
+    <p class="msg" id="streakMsg"></p>
   </div>
-  <p class="streak-msg" id="streakMsg"></p>
 
-  <section id="play">
+  <!-- Práctica libre: opciones -->
+  <section class="panel" id="practiceSetup" hidden>
+    <h2>Práctica libre</h2>
+    <p>Practica lo que quieras, sin límite. No cuenta para la racha, pero sí para tus repasos.</p>
+    <fieldset>
+      <legend>QUÉ TARJETAS</legend>
+      <div class="chips" id="fSource">
+        <label><input type="radio" name="src" id="srcFail" value="fail" checked><span>Falladas <small id="cFail">0</small></span></label>
+        <label><input type="radio" name="src" id="srcRandom" value="random"><span>Aleatorias <small id="cRandom">0</small></span></label>
+        <label><input type="radio" name="src" id="srcSeen" value="seen"><span>Ya vistas <small id="cSeen">0</small></span></label>
+        <label><input type="radio" name="src" id="srcNew" value="new"><span>Sin ver <small id="cNew">0</small></span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>DIFICULTAD</legend>
+      <div class="chips" id="fLevel">
+        <label><input type="radio" name="lvl" id="lvlAll" value="0" checked><span>Todas</span></label>
+        <label><input type="radio" name="lvl" id="lvl1" value="1"><span>Fácil · A1–A2</span></label>
+        <label><input type="radio" name="lvl" id="lvl2" value="2"><span>Media · B1</span></label>
+        <label><input type="radio" name="lvl" id="lvl3" value="3"><span>Difícil · B2</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>TIPO</legend>
+      <div class="chips" id="fType">
+        <label><input type="radio" name="typ" id="typAll" value="" checked><span>Todo</span></label>
+        <label><input type="radio" name="typ" id="typW" value="W"><span>Palabras</span></label>
+        <label><input type="radio" name="typ" id="typP" value="P"><span>Preposiciones</span></label>
+        <label><input type="radio" name="typ" id="typV" value="V"><span>Verbos</span></label>
+        <label><input type="radio" name="typ" id="typF" value="F"><span>Frases</span></label>
+      </div>
+    </fieldset>
+    <button class="primary" id="startPractice">Empezar</button>
+  </section>
+
+  <!-- Práctica libre: marcador de la ronda -->
+  <div class="score" id="practiceHead" hidden>
+    <span>Tarjeta <b id="pPos">1</b> de <b id="pLen">20</b> · <b class="ok" id="pOk">0</b> bien · <b class="bad" id="pBad">0</b> mal</span>
+    <button class="small-btn" id="stopPractice">Terminar</button>
+  </div>
+
+  <p class="loading" id="loading">Cargando tarjetas…</p>
+
+  <section id="play" hidden>
     <div class="card" id="card">
       <div class="face front">
         <div class="tagline"><span class="cat" id="cat"></span><span class="status" id="status"></span></div>
@@ -185,17 +263,28 @@ td:first-child{font-weight:600;white-space:nowrap}
     </div>
   </section>
 
-  <section class="done" id="done" hidden>
+  <section class="panel" id="done" hidden>
     <span class="stamp">SIGNED OFF</span>
-    <h2>Día cerrado. Buen trabajo.</h2>
+    <h2>Reto de hoy cerrado. Buen trabajo.</h2>
     <p id="doneText"></p>
     <div class="stats">
       <div><b id="sOk">0</b><span>Bien hoy</span></div>
       <div><b id="sBad">0</b><span>Para mañana</span></div>
       <div><b id="sMaster">0</b><span>Acertadas</span></div>
     </div>
-    <button id="extra">Una ronda extra (opcional)</button>
+    <button id="goPractice">¿Te quedan ganas? Práctica libre</button>
   </section>
+
+  <section class="panel" id="practiceDone" hidden>
+    <h2>Ronda terminada</h2>
+    <p id="pDoneText"></p>
+    <div class="btn-row">
+      <button id="againPractice">Otra ronda igual</button>
+      <button id="setupPractice">Cambiar opciones</button>
+    </div>
+  </section>
+
+  <div class="progress-all" id="progressAll"></div>
 
   <details class="list">
     <summary>Repaso de mañana <span id="nFail">0</span></summary>
@@ -212,7 +301,8 @@ td:first-child{font-weight:600;white-space:nowrap}
   <div class="sheet-head"><div class="in">
     <div class="sheet-top"><h2 id="sheetTitle">Chuleta</h2><button class="small-btn" id="closeSheet">Cerrar</button></div>
     <div class="tabs" role="tablist">
-      <button role="tab" id="tabV" aria-selected="true">Verbos</button>
+      <button role="tab" id="tabV" aria-selected="true">Verbos básicos</button>
+      <button role="tab" id="tabG" aria-selected="false">B1–B2</button>
       <button role="tab" id="tabP" aria-selected="false">Preposiciones</button>
     </div>
   </div></div>
@@ -221,9 +311,8 @@ td:first-child{font-weight:600;white-space:nowrap}
     <section class="sec gold" id="r-oro">
       <h3>Las 2 reglas de oro</h3>
       <p><b>1.</b> En presente, con <b>he / she / it</b> el verbo lleva <b>-s</b>: I check → she check<b>s</b>.</p>
-      <p><b>2.</b> Después de <b>can, will, don't, doesn't, didn't, to</b> va el verbo <b>tal cual</b>, sin -s ni -ed: she <b>can</b> check, he <b>didn't</b> sign.</p>
+      <p><b>2.</b> Después de <b>can, will, would, should, must, might, don't, doesn't, didn't, to</b> va el verbo <b>tal cual</b>: she <b>can</b> check, he <b>didn't</b> sign.</p>
     </section>
-
     <section class="sec" id="r-be">
       <h3>To be (ser / estar)</h3>
       <div class="tbl"><table>
@@ -234,13 +323,21 @@ td:first-child{font-weight:600;white-space:nowrap}
       </table></div>
       <p class="use">Pasado: I / he / she / it <b>was</b> · you / we / they <b>were</b>. Negativo: wasn't, weren't.</p>
     </section>
-
     <section class="sec" id="r-there">
       <h3>Hay: there is / there are</h3>
       <p><b>There's</b> a crack. (uno) · <b>There are</b> two cracks. (varios)</p>
       <p class="use">Pregunta: Is there…? / Are there…? · Pasado: there was / there were.</p>
     </section>
-
+    <section class="sec" id="r-questions">
+      <h3>Preguntas</h3>
+      <p><b>Palabra Wh- + auxiliar + sujeto + verbo</b>: Where <b>do</b> you live? · What <b>did</b> she say? · When <b>are</b> you leaving?</p>
+      <div class="tbl"><table>
+        <tr><td>what</td><td>qué</td></tr><tr><td>where</td><td>dónde</td></tr><tr><td>when</td><td>cuándo</td></tr>
+        <tr><td>who</td><td>quién</td></tr><tr><td>why</td><td>por qué (respuesta: because)</td></tr><tr><td>how</td><td>cómo</td></tr>
+        <tr><td>which</td><td>cuál (entre varias opciones)</td></tr><tr><td>how many / how much</td><td>cuántos (contables) / cuánto (incontables)</td></tr>
+        <tr><td>how long</td><td>cuánto tiempo</td></tr><tr><td>how often</td><td>cada cuánto</td></tr>
+      </table></div>
+    </section>
     <section class="sec" id="r-present">
       <h3>Presente simple: rutinas y cosas que siempre pasan</h3>
       <div class="tbl"><table>
@@ -250,45 +347,49 @@ td:first-child{font-weight:600;white-space:nowrap}
       </table></div>
       <p class="use">Ojo: have → she <b>has</b> · do → she <b>does</b> · go → she <b>goes</b> · fix → she <b>fixes</b>.</p>
     </section>
-
     <section class="sec" id="r-cont">
       <h3>Presente continuo: lo que haces ahora mismo</h3>
-      <p><b>am / is / are + verbo-ing</b></p>
-      <p>I'm checking · she's cleaning · they're waiting</p>
+      <p><b>am / is / are + verbo-ing</b> · I'm checking · she's cleaning · they're waiting</p>
       <p class="use">Negativo: I'm not working · Pregunta: Are you working?</p>
       <p>En pasado (lo que estabas haciendo): <b>was / were + verbo-ing</b> · I was measuring it when you called.</p>
     </section>
-
     <section class="sec" id="r-past">
       <h3>Pasado simple</h3>
       <p>Regulares: <b>+ed</b> → checked, measured, signed, cleaned, changed.</p>
       <p>Negativo y pregunta con <b>did</b> + verbo tal cual: I <b>didn't</b> sign · <b>Did</b> you check it?</p>
       <div class="tbl"><table>
-        <tr><th>VERBO</th><th>PASADO</th><th>SIGNIFICA</th></tr>
-        <tr><td>be</td><td>was / were</td><td>ser, estar</td></tr>
-        <tr><td>have</td><td>had</td><td>tener</td></tr>
-        <tr><td>do</td><td>did</td><td>hacer</td></tr>
-        <tr><td>go</td><td>went</td><td>ir</td></tr>
-        <tr><td>get</td><td>got</td><td>conseguir, llegar</td></tr>
-        <tr><td>see</td><td>saw</td><td>ver</td></tr>
-        <tr><td>find</td><td>found</td><td>encontrar</td></tr>
-        <tr><td>make</td><td>made</td><td>hacer, fabricar</td></tr>
-        <tr><td>take</td><td>took</td><td>coger, llevar</td></tr>
-        <tr><td>give</td><td>gave</td><td>dar</td></tr>
-        <tr><td>put</td><td>put</td><td>poner</td></tr>
-        <tr><td>say / tell</td><td>said / told</td><td>decir</td></tr>
-        <tr><td>break</td><td>broke</td><td>romper</td></tr>
-        <tr><td>come</td><td>came</td><td>venir</td></tr>
-        <tr><td>know</td><td>knew</td><td>saber</td></tr>
+        <tr><th>VERBO</th><th>PASADO</th><th>PARTICIPIO</th><th>SIGNIFICA</th></tr>
+        <tr><td>be</td><td>was / were</td><td>been</td><td>ser, estar</td></tr>
+        <tr><td>have</td><td>had</td><td>had</td><td>tener</td></tr>
+        <tr><td>do</td><td>did</td><td>done</td><td>hacer</td></tr>
+        <tr><td>go</td><td>went</td><td>gone</td><td>ir</td></tr>
+        <tr><td>get</td><td>got</td><td>got</td><td>conseguir, llegar</td></tr>
+        <tr><td>see</td><td>saw</td><td>seen</td><td>ver</td></tr>
+        <tr><td>find</td><td>found</td><td>found</td><td>encontrar</td></tr>
+        <tr><td>make</td><td>made</td><td>made</td><td>hacer, fabricar</td></tr>
+        <tr><td>take</td><td>took</td><td>taken</td><td>coger, llevar</td></tr>
+        <tr><td>give</td><td>gave</td><td>given</td><td>dar</td></tr>
+        <tr><td>put</td><td>put</td><td>put</td><td>poner</td></tr>
+        <tr><td>say / tell</td><td>said / told</td><td>said / told</td><td>decir</td></tr>
+        <tr><td>break</td><td>broke</td><td>broken</td><td>romper</td></tr>
+        <tr><td>come</td><td>came</td><td>come</td><td>venir</td></tr>
+        <tr><td>know</td><td>knew</td><td>known</td><td>saber</td></tr>
+        <tr><td>leave</td><td>left</td><td>left</td><td>irse, dejar</td></tr>
+        <tr><td>bring</td><td>brought</td><td>brought</td><td>traer</td></tr>
+        <tr><td>buy</td><td>bought</td><td>bought</td><td>comprar</td></tr>
+        <tr><td>send</td><td>sent</td><td>sent</td><td>enviar</td></tr>
+        <tr><td>write</td><td>wrote</td><td>written</td><td>escribir</td></tr>
+        <tr><td>speak</td><td>spoke</td><td>spoken</td><td>hablar</td></tr>
+        <tr><td>forget</td><td>forgot</td><td>forgotten</td><td>olvidar</td></tr>
+        <tr><td>keep</td><td>kept</td><td>kept</td><td>guardar, mantener</td></tr>
+        <tr><td>think</td><td>thought</td><td>thought</td><td>pensar</td></tr>
       </table></div>
     </section>
-
     <section class="sec" id="r-will">
       <h3>Futuro con will: decides ahora, prometes, ofreces</h3>
       <p><b>will + verbo</b> (igual para todos): I'll check it · she'll call you</p>
       <p class="use">Negativo: <b>won't</b> (= will not) · Pregunta: Will you…?</p>
     </section>
-
     <section class="sec" id="r-going">
       <h3>Futuro con going to: planes ya decididos</h3>
       <p><b>am / is / are + going to + verbo</b></p>
@@ -299,7 +400,6 @@ td:first-child{font-weight:600;white-space:nowrap}
       </table></div>
       <p class="use">Hablando rápido suena "gonna": I'm gonna check it.</p>
     </section>
-
     <section class="sec" id="r-can">
       <h3>Can / can't: poder, saber hacer</h3>
       <p><b>can + verbo</b>, igual para todos. Nunca "cans" ni "can to".</p>
@@ -307,316 +407,267 @@ td:first-child{font-weight:600;white-space:nowrap}
       <p class="use">Pasado: <b>could / couldn't</b> · I couldn't sign it.</p>
       <p><b>should + verbo</b> = debería · You should ask the inspector.</p>
     </section>
-
-    <section class="sec" id="r-perfect">
-      <h3>Ya / todavía no / alguna vez: have + participio</h3>
-      <p><b>I've / you've / we've</b> + participio · <b>she's / he's</b> + participio</p>
-      <p>I've finished · I've checked it twice · I haven't seen it yet · Have you finished?</p>
-      <p class="use">Regulares: participio = -ed (checked). Irregulares útiles: see → seen, do → done, find → found, break → broken.</p>
-    </section>
-
     <section class="sec" id="r-have">
       <h3>Have to: tener que</h3>
-      <p>I / you / we / they <b>have to</b> · he / she / it <b>has to</b></p>
-      <p class="use">Negativo: don't have to = no hace falta.</p>
+      <p>I / you / we / they <b>have to</b> · he / she / it <b>has to</b> · pasado: <b>had to</b></p>
+      <p class="use">Negativo: don't have to = no hace falta (no es prohibición).</p>
     </section>
-
     <section class="sec" id="r-imp">
       <h3>Órdenes (imperativo)</h3>
       <p>El verbo solo: <b>Check</b> the part. · Negativo: <b>Don't</b> touch it.</p>
-      <p class="use">Para sonar amable: Can you check the part, please?</p>
+      <p class="use">Para sonar amable: Can you check the part, please? · Could you…? · Would you mind + -ing?</p>
+    </section>
+    <section class="sec" id="r-perfect">
+      <h3>Ya / todavía no / alguna vez: have + participio</h3>
+      <p><b>I've / you've / we've</b> + participio · <b>she's / he's</b> + participio</p>
+      <p>I've finished · I've checked it twice · I haven't seen it yet · Have you ever…?</p>
+      <p class="use">Con palabras: just (acabo de), already (ya), yet (todavía, al final), ever / never, for (durante) + tiempo, since (desde) + momento.</p>
+      <p class="use">Diferencia con el pasado: si dices cuándo (yesterday, at 3, last week), usa pasado simple: I checked it yesterday.</p>
+    </section>
+  </div>
+
+  <div class="sheet-body" id="paneG" hidden>
+    <section class="sec" id="r-compar">
+      <h3>Comparar <small>B1</small></h3>
+      <div class="tbl"><table>
+        <tr><th>TIPO</th><th>MÁS … QUE</th><th>EL MÁS …</th></tr>
+        <tr><td>corto</td><td>bigger than, older than</td><td>the biggest</td></tr>
+        <tr><td>largo</td><td>more expensive than</td><td>the most important</td></tr>
+        <tr><td>irregular</td><td>better / worse than</td><td>the best / the worst</td></tr>
+      </table></div>
+      <p>as … as = tan … como · too + adjetivo = demasiado · adjetivo + enough = suficiente (big enough)</p>
+    </section>
+    <section class="sec" id="r-quant">
+      <h3>Cantidades <small>B1</small></h3>
+      <div class="tbl"><table>
+        <tr><td>some</td><td>algo, algunos (afirmativas y ofrecimientos)</td></tr>
+        <tr><td>any</td><td>ningún / algún (negativas y preguntas)</td></tr>
+        <tr><td>much / many</td><td>mucho (incontable) / muchos (contables)</td></tr>
+        <tr><td>a lot of</td><td>mucho, muchos (vale para todo)</td></tr>
+        <tr><td>a few / a little</td><td>unos pocos / un poco</td></tr>
+        <tr><td>enough</td><td>suficiente</td></tr>
+      </table></div>
+    </section>
+    <section class="sec" id="r-modals">
+      <h3>Modales: deber, poder, quizá <small>B1–B2</small></h3>
+      <div class="tbl"><table>
+        <tr><td>must</td><td>tener que (obligación fuerte, norma) · You must wear gloves.</td></tr>
+        <tr><td>mustn't</td><td>prohibido · You mustn't smoke here.</td></tr>
+        <tr><td>don't have to / needn't</td><td>no hace falta · You don't have to stay.</td></tr>
+        <tr><td>should</td><td>debería (consejo) · You should rest.</td></tr>
+        <tr><td>might / may</td><td>puede que, quizá · It might be corrosion.</td></tr>
+        <tr><td>could</td><td>podría · It could be a crack.</td></tr>
+      </table></div>
+      <p><b>Sobre el pasado: modal + have + participio</b></p>
+      <div class="tbl"><table>
+        <tr><td>should have</td><td>debería haber · I should have checked it.</td></tr>
+        <tr><td>must have</td><td>seguro que (deducción) · It must have overheated.</td></tr>
+        <tr><td>might / could have</td><td>puede que / podría haber · Someone might have dropped it.</td></tr>
+        <tr><td>can't have</td><td>es imposible que · He can't have signed it.</td></tr>
+      </table></div>
+    </section>
+    <section class="sec" id="r-cond1">
+      <h3>Primer condicional: algo real o probable <small>B1</small></h3>
+      <p><b>If + presente, will + verbo</b> · If it's out of limits, I'll reject it.</p>
+      <p class="use">Igual con <b>when</b>, <b>as soon as</b> (en cuanto), <b>unless</b> (a menos que): I'll call you as soon as it arrives. Después de estas palabras, presente, nunca will.</p>
+    </section>
+    <section class="sec" id="r-cond2">
+      <h3>Segundo condicional: imaginar <small>B2</small></h3>
+      <p><b>If + pasado, would + verbo</b> · If I had more time, I would check it again.</p>
+      <p class="use">If I <b>were</b> you, I'd ask the supervisor. (Con if, "were" para todos).</p>
+      <p><b>would</b> para pedir con educación: Would you mind checking this? · I'd like a copy.</p>
+    </section>
+    <section class="sec" id="r-usedto">
+      <h3>Used to / would like <small>B1</small></h3>
+      <p><b>used to + verbo</b> = solía · I used to work in Madrid.</p>
+      <p><b>be used to + -ing</b> = estar acostumbrado · I'm used to working nights.</p>
+      <p><b>would like / I'd like + to + verbo</b> = me gustaría · I'd like to ask something.</p>
+    </section>
+    <section class="sec" id="r-gerund">
+      <h3>-ing o to + verbo <small>B1–B2</small></h3>
+      <div class="tbl"><table>
+        <tr><td>+ -ing</td><td>finish, enjoy, avoid, suggest, mind, keep, start, stop, look forward to · Avoid touching the blade.</td></tr>
+        <tr><td>+ to</td><td>want, need, try, decide, plan, forget, agree, promise, would like · I need to check it.</td></tr>
+        <tr><td>cambia el sentido</td><td>remember to (acordarse de hacer) / remember -ing (recordar haber hecho) · stop to (parar para) / stop -ing (dejar de)</td></tr>
+      </table></div>
+      <p class="use">Después de preposición, siempre -ing: before starting, without asking, thanks for helping.</p>
+    </section>
+    <section class="sec" id="r-pastperfect">
+      <h3>Pasado anterior a otro pasado <small>B2</small></h3>
+      <p><b>had + participio</b> · When I arrived, they <b>had</b> already <b>started</b>.</p>
+    </section>
+    <section class="sec" id="r-passive">
+      <h3>Pasiva: lo importante es la pieza, no quién <small>B1–B2</small></h3>
+      <p><b>be + participio</b> (el tiempo va en el be)</p>
+      <div class="tbl"><table>
+        <tr><td>presente</td><td>The parts <b>are checked</b> every day.</td></tr>
+        <tr><td>pasado</td><td>The blade <b>was rejected</b>.</td></tr>
+        <tr><td>perfecto</td><td>It <b>has been signed off</b>.</td></tr>
+        <tr><td>futuro</td><td>It <b>will be replaced</b>.</td></tr>
+        <tr><td>modal</td><td>It <b>must be cleaned</b> / It <b>needs to be</b> checked.</td></tr>
+      </table></div>
+      <p class="use">Quién lo hizo, con <b>by</b>: signed by the inspector.</p>
+    </section>
+    <section class="sec" id="r-reported">
+      <h3>Contar lo que dijo otro <small>B2</small></h3>
+      <div class="tbl"><table>
+        <tr><td>"It's OK."</td><td>He said (that) it <b>was</b> OK.</td></tr>
+        <tr><td>"I'll call you."</td><td>She said she <b>would</b> call me.</td></tr>
+        <tr><td>"I checked it."</td><td>He said he <b>had checked</b> it.</td></tr>
+        <tr><td>"Is it ready?"</td><td>She asked me <b>if</b> it was ready.</td></tr>
+        <tr><td>"Check it!"</td><td>He told me <b>to check</b> it.</td></tr>
+      </table></div>
+      <p class="use">say + lo dicho · tell + persona: He told me… / He said to me…</p>
+    </section>
+    <section class="sec" id="r-relative">
+      <h3>Unir frases: who, which, that, where, whose <small>B1–B2</small></h3>
+      <div class="tbl"><table>
+        <tr><td>who</td><td>personas · The man who signed it.</td></tr>
+        <tr><td>which / that</td><td>cosas · The part that failed.</td></tr>
+        <tr><td>where</td><td>lugares · The shop where I work.</td></tr>
+        <tr><td>whose</td><td>cuyo · The engineer whose report I read.</td></tr>
+      </table></div>
+    </section>
+    <section class="sec" id="r-phrasal">
+      <h3>Phrasal verbs del día a día <small>B1–B2</small></h3>
+      <div class="tbl"><table>
+        <tr><td>carry out</td><td>llevar a cabo (una inspección, una tarea)</td></tr>
+        <tr><td>fill in</td><td>rellenar (un formulario)</td></tr>
+        <tr><td>find out</td><td>averiguar, enterarse</td></tr>
+        <tr><td>sort out</td><td>arreglar, solucionar</td></tr>
+        <tr><td>set up</td><td>montar, preparar</td></tr>
+        <tr><td>take off / put on</td><td>quitar(se) / poner(se)</td></tr>
+        <tr><td>run out of</td><td>quedarse sin</td></tr>
+        <tr><td>look into</td><td>investigar, mirar a fondo</td></tr>
+        <tr><td>figure out</td><td>entender, dar con la solución</td></tr>
+        <tr><td>hand over</td><td>entregar, pasar (el turno)</td></tr>
+        <tr><td>break down</td><td>averiarse</td></tr>
+        <tr><td>point out</td><td>señalar, hacer notar</td></tr>
+        <tr><td>follow up</td><td>hacer seguimiento</td></tr>
+        <tr><td>come across</td><td>encontrarse con algo</td></tr>
+        <tr><td>back up</td><td>respaldar, hacer copia</td></tr>
+        <tr><td>turn up</td><td>aparecer, presentarse</td></tr>
+      </table></div>
+    </section>
+    <section class="sec" id="r-connect">
+      <h3>Conectores para frases largas <small>B1–B2</small></h3>
+      <div class="tbl"><table>
+        <tr><td>because / so</td><td>porque / así que</td></tr>
+        <tr><td>but / however</td><td>pero / sin embargo</td></tr>
+        <tr><td>although / even though</td><td>aunque</td></tr>
+        <tr><td>despite + -ing / nombre</td><td>a pesar de</td></tr>
+        <tr><td>unless</td><td>a menos que</td></tr>
+        <tr><td>in case</td><td>por si</td></tr>
+        <tr><td>so that</td><td>para que</td></tr>
+        <tr><td>whereas</td><td>mientras que (contraste)</td></tr>
+        <tr><td>therefore</td><td>por lo tanto</td></tr>
+      </table></div>
     </section>
   </div>
 
   <div class="sheet-body" id="paneP" hidden>
     <section class="sec" id="r-plugar">
-      <h3>Lugar</h3>
+      <h3>Lugar y movimiento</h3>
       <div class="tbl"><table>
-        <tr><td>in</td><td>dentro de · in the box, in the hangar</td></tr>
-        <tr><td>on</td><td>encima, sobre una superficie · on the bench, on the blade</td></tr>
+        <tr><td>in</td><td>dentro de · in the box, in the hangar, in Zurich</td></tr>
+        <tr><td>on</td><td>encima, sobre una superficie · on the bench, on page 5</td></tr>
         <tr><td>at</td><td>en un punto o sitio concreto · at work, at the gate, at home</td></tr>
-        <tr><td>into</td><td>hacia dentro (movimiento) · put it into the box</td></tr>
+        <tr><td>into / out of</td><td>hacia dentro / hacia fuera · put it into the box</td></tr>
         <tr><td>under</td><td>debajo de · under the paint</td></tr>
         <tr><td>above / below</td><td>por encima / por debajo · above the limit</td></tr>
-        <tr><td>between</td><td>entre (dos cosas) · between the holes</td></tr>
-        <tr><td>next to</td><td>al lado de · next to the door</td></tr>
-        <tr><td>behind</td><td>detrás de · behind the engine</td></tr>
-        <tr><td>in front of</td><td>delante de · in front of the hangar</td></tr>
-        <tr><td>to</td><td>hacia, a (dirección) · I go to work</td></tr>
-        <tr><td>from</td><td>de, desde (origen) · I'm from Spain</td></tr>
+        <tr><td>between / among</td><td>entre (dos) / entre (varios)</td></tr>
+        <tr><td>next to / opposite</td><td>al lado de / enfrente de</td></tr>
+        <tr><td>behind / in front of</td><td>detrás / delante de</td></tr>
+        <tr><td>through</td><td>a través de · through the hole</td></tr>
+        <tr><td>across / along</td><td>de un lado a otro / a lo largo de</td></tr>
+        <tr><td>towards</td><td>hacia</td></tr>
+        <tr><td>to / from</td><td>a (dirección) / de, desde (origen)</td></tr>
       </table></div>
     </section>
     <section class="sec" id="r-ptiempo">
       <h3>Tiempo</h3>
       <div class="tbl"><table>
-        <tr><td>at</td><td>horas · at 7 o'clock, at night</td></tr>
+        <tr><td>at</td><td>horas · at 7 o'clock, at night, at the weekend</td></tr>
         <tr><td>on</td><td>días y fechas · on Monday, on 3 May</td></tr>
-        <tr><td>in</td><td>meses, años, partes del día · in May, in the morning</td></tr>
+        <tr><td>in</td><td>meses, años, partes del día · in May, in the morning · dentro de: in two days</td></tr>
         <tr><td>from … to</td><td>de … a · from 7 to 4</td></tr>
         <tr><td>by</td><td>como tarde, para · by Friday</td></tr>
-        <tr><td>for</td><td>durante (cuánto tiempo) · for two hours</td></tr>
         <tr><td>until / till</td><td>hasta · until tomorrow</td></tr>
-        <tr><td>before / after</td><td>antes / después de · before lunch</td></tr>
+        <tr><td>for</td><td>durante (cuánto) · for two hours</td></tr>
+        <tr><td>since</td><td>desde (un momento) · since Monday</td></tr>
         <tr><td>during</td><td>durante (algo) · during the inspection</td></tr>
+        <tr><td>before / after</td><td>antes / después de</td></tr>
+        <tr><td>within</td><td>en un plazo de · within 24 hours</td></tr>
+        <tr><td>prior to</td><td>antes de (formal, documentos)</td></tr>
       </table></div>
     </section>
     <section class="sec" id="r-potras">
-      <h3>Otras muy usadas en el taller</h3>
+      <h3>Otras y las que van pegadas a verbos y adjetivos</h3>
       <div class="tbl"><table>
-        <tr><td>for</td><td>para · a part for the engine</td></tr>
-        <tr><td>with / without</td><td>con / sin · with gloves</td></tr>
-        <tr><td>by</td><td>por (quién lo hace) · signed by the inspector</td></tr>
-        <tr><td>of</td><td>de · a part of the engine</td></tr>
-        <tr><td>about</td><td>sobre, acerca de · talk about the problem</td></tr>
-        <tr><td>within</td><td>dentro de (límites) · within limits</td></tr>
-        <tr><td>out of</td><td>fuera de · out of limits</td></tr>
+        <tr><td>for</td><td>para · a part for the engine · responsible for, apply for, wait for</td></tr>
+        <tr><td>with / without</td><td>con / sin · deal with, familiar with, comply with</td></tr>
+        <tr><td>by</td><td>por (quién) · signed by the inspector · by hand, by email</td></tr>
+        <tr><td>of</td><td>de · made of titanium, aware of, consist of, in charge of</td></tr>
+        <tr><td>on</td><td>depend on, rely on, focus on, based on</td></tr>
+        <tr><td>in</td><td>interested in, result in, involved in</td></tr>
+        <tr><td>at</td><td>good at, look at</td></tr>
+        <tr><td>to</td><td>refer to, according to, due to, subject to, similar to</td></tr>
+        <tr><td>about</td><td>sobre · talk about, worried about</td></tr>
+        <tr><td>within / out of</td><td>dentro de / fuera de (límites)</td></tr>
         <tr><td>per</td><td>según · per the manual</td></tr>
+        <tr><td>instead of</td><td>en vez de</td></tr>
+        <tr><td>because of</td><td>a causa de</td></tr>
       </table></div>
     </section>
   </div>
 </div>
 
 <script>
-/* Mazo. Tipos:
-   W palabra:    [id,"W", español, inglés, nota]
-   P preposición:[id,"P", frase con ___, traducción, respuesta (varias con " … "), pista, ref]
-   V verbo:      [id,"V", español, inglés con **marca**, nota, pista, ref]
-   F frase:      [id,"F", categoría, español, inglés con **marca** opcional, nota, pista, ref] */
-const DECK = [
-// ---------- Palabras ----------
-["w01","W","pieza","part",""],
-["w02","W","herramienta","tool",""],
-["w03","W","taller","workshop","También \"the shop\"."],
-["w04","W","motor","engine","Pronuncia \"EN-jin\"."],
-["w05","W","álabe","blade","Fan blade, turbine blade…"],
-["w06","W","perno / tornillo","bolt","Bolt lleva tuerca. Screw va roscado directamente."],
-["w07","W","tuerca","nut",""],
-["w08","W","arandela","washer",""],
-["w09","W","junta","seal","También \"gasket\"."],
-["w10","W","grieta","crack",""],
-["w11","W","mella","nick",""],
-["w12","W","abolladura","dent",""],
-["w13","W","desgaste","wear","Pronuncia como \"wair\"."],
-["w14","W","corrosión","corrosion","Pronuncia \"kuh-ROH-zhun\"."],
-["w15","W","límite","limit",""],
-["w16","W","medida","measurement","El verbo es \"measure\" (medir)."],
-["w17","W","pie de rey","calliper","Vernier calliper."],
-["w18","W","llave (herramienta)","wrench","En inglés británico: \"spanner\"."],
-["w19","W","llave dinamométrica","torque wrench","Torque se dice \"tork\"."],
-["w20","W","linterna","torch","En americano: \"flashlight\"."],
-["w21","W","lupa","magnifying glass",""],
-["w22","W","guantes","gloves",""],
-["w23","W","gafas de seguridad","safety glasses",""],
-["w24","W","turno","shift","Morning shift, night shift."],
-["w25","W","compañero de trabajo","colleague","Pronuncia \"KOL-eeg\". Más coloquial: \"workmate\"."],
-["w26","W","jefe de equipo","team lead","También \"supervisor\"."],
-["w27","W","firma / firmar","signature / sign","La g de sign no suena: \"sain\"."],
-["w28","W","número de serie","serial number","S/N."],
-["w29","W","número de pieza","part number","P/N."],
-["w30","W","almacén","stores","En aviación se dice \"stores\"."],
-["w31","W","banco de trabajo","workbench",""],
-["w32","W","aceite","oil",""],
-["w33","W","combustible","fuel",""],
-["w34","W","suelto / apretado","loose / tight",""],
-["w35","W","dañado","damaged",""],
-["w36","W","limpio / sucio","clean / dirty",""],
-["w37","W","apto / no apto (pieza)","serviceable / unserviceable","No apto se abrevia U/S."],
-["w38","W","ayer / hoy / mañana","yesterday / today / tomorrow",""],
-["w39","W","temprano / tarde","early / late",""],
-["w40","W","descanso","break","Coffee break, lunch break."],
-["w41","W","comida (del mediodía)","lunch",""],
-["w42","W","cajón","drawer","Pronuncia \"dror\"."],
-["w43","W","agujero","hole",""],
-["w44","W","rosca","thread","Pronuncia \"zred\", con la th como la z española."],
-["w45","W","papeleo","paperwork",""],
-// ---------- Preposiciones ----------
-["p01","P","The part is ___ the box.","La pieza está dentro de la caja.","in","Dentro de algo → in","plugar"],
-["p02","P","The tool is ___ the bench.","La herramienta está sobre el banco.","on","Encima de una superficie → on","plugar"],
-["p03","P","I'm ___ work.","Estoy en el trabajo.","at","Un sitio concreto (work, home, the gate) → at","plugar"],
-["p04","P","There's corrosion ___ the paint.","Hay corrosión debajo de la pintura.","under","Debajo → under","plugar"],
-["p05","P","It's ___ limits.","Está dentro de límites.","within","Dentro de límites → within","potras"],
-["p06","P","It's ___ limits.","Está fuera de límites.","out of","Fuera de → out of","potras"],
-["p07","P","___ the manual, the limit is 2 mm.","Según el manual, el límite es 2 mm.","Per","Según → per","potras"],
-["p08","P","The crack is ___ the two holes.","La grieta está entre los dos agujeros.","between","Entre dos cosas → between","plugar"],
-["p09","P","My shift is ___ 7 ___ 4.","Mi turno es de 7 a 4.","from … to","De … a … → from … to","ptiempo"],
-["p10","P","I start ___ 7 o'clock.","Empiezo a las 7.","at","Horas → at","ptiempo"],
-["p11","P","I don't work ___ Sunday.","No trabajo el domingo.","on","Días de la semana → on","ptiempo"],
-["p12","P","We have a meeting ___ the morning.","Tenemos una reunión por la mañana.","in","Partes del día → in (pero: at night)","ptiempo"],
-["p13","P","I need it ___ Friday.","Lo necesito para el viernes.","by","Como tarde, fecha límite → by","ptiempo"],
-["p14","P","This part is ___ the engine.","Esta pieza es para el motor.","for","Para → for","potras"],
-["p15","P","I worked there ___ two years.","Trabajé allí durante dos años.","for","Cuánto tiempo dura → for","ptiempo"],
-["p16","P","Can you come ___ me?","¿Puedes venir conmigo?","with","Con → with","potras"],
-["p17","P","Don't work ___ gloves.","No trabajes sin guantes.","without","Sin → without","potras"],
-["p18","P","The torque wrench is ___ the drawer.","La dinamométrica está en el cajón.","in","Dentro de algo → in","plugar"],
-["p19","P","The value is ___ the limit.","El valor está por encima del límite.","above","Por encima → above","plugar"],
-["p20","P","The wear is ___ the limit. It's OK.","El desgaste está por debajo del límite. Está bien.","below","Por debajo → below","plugar"],
-["p21","P","Look ___ the engine.","Mira detrás del motor.","behind","Detrás → behind","plugar"],
-["p22","P","The box is ___ the door.","La caja está al lado de la puerta.","next to","Al lado de → next to","plugar"],
-["p23","P","Wash your hands ___ lunch.","Lávate las manos antes de comer.","before","Antes de → before","ptiempo"],
-["p24","P","Call me ___ the inspection.","Llámame después de la inspección.","after","Después de → after","ptiempo"],
-["p25","P","It's signed ___ the inspector.","Está firmado por el inspector.","by","Quién lo hace → by","potras"],
-["p26","P","I'm ___ Spain.","Soy de España.","from","Origen → from","plugar"],
-["p27","P","Put it ___ the box.","Mételo en la caja.","into","Movimiento hacia dentro → into","plugar"],
-["p28","P","It's ___ page 12.","Está en la página 12.","on","Páginas → on","plugar"],
-["p29","P","Let's talk ___ the problem.","Hablemos sobre el problema.","about","Sobre un tema → about","potras"],
-["p30","P","Wait ___ tomorrow.","Espera hasta mañana.","until","Hasta → until (hablado: till)","ptiempo"],
-["p31","P","I go ___ work by bus.","Voy al trabajo en autobús.","to","Dirección, a dónde vas → to","plugar"],
-["p32","P","It's a part ___ the engine.","Es una pieza del motor.","of","De → of","potras"],
-["p33","P","I live ___ Zurich.","Vivo en Zúrich.","in","Ciudades y países → in","plugar"],
-["p34","P","I was tired ___ the night shift.","Estaba cansado durante el turno de noche.","during","Durante algo → during","ptiempo"],
-// ---------- Verbos ----------
-["v01","V","Soy inspector.","**I'm** an inspector.","Con profesiones va \"a / an\".","I → am (I'm)","be"],
-["v02","V","Ella es la supervisora.","**She's** the supervisor.","","she → is (she's)","be"],
-["v03","V","Ellos están en el hangar.","**They're** in the hangar.","","they → are (they're)","be"],
-["v04","V","La pieza está bien.","The part **is** OK.","","Una cosa = it → is","be"],
-["v05","V","No está bien.","It **isn't** OK.","También: It's not OK.","Negativo de is → isn't","be"],
-["v06","V","¿Está listo?","**Is** it ready?","","Pregunta: le das la vuelta → Is it…?","be"],
-["v07","V","Reviso la pieza.","I **check** the part.","","Con I, el verbo va tal cual","present"],
-["v08","V","Él revisa la pieza.","He **checks** the part.","","he / she / it → verbo + s","present"],
-["v09","V","Ella trabaja en el turno de mañana.","She **works** on the morning shift.","Ojo: on the shift.","she → verbo + s","present"],
-["v10","V","No uso esta herramienta.","I **don't use** this tool.","","Negativo: don't + verbo","present"],
-["v11","V","Él no firma la tarjeta.","He **doesn't sign** the card.","","he / she → doesn't + verbo, y el verbo pierde la -s","present"],
-["v12","V","¿Tienes el manual?","**Do** you **have** the manual?","","Pregunta: Do + you + verbo","present"],
-["v13","V","¿Trabaja ella hoy?","**Does** she **work** today?","","Pregunta con she: Does + she + verbo sin -s","present"],
-["v14","V","Él tiene una pregunta.","He **has** a question.","","have con he / she / it → has","present"],
-["v15","V","Estoy midiendo la grieta.","I'**m measuring** the crack.","","Ahora mismo: am + verbo-ing","cont"],
-["v16","V","Él está limpiando el álabe.","He'**s cleaning** the blade.","","he → is + verbo-ing","cont"],
-["v17","V","Estamos esperando la pieza.","We'**re waiting** for the part.","wait for = esperar algo.","we → are + verbo-ing","cont"],
-["v18","V","Ayer revisé el motor.","I **checked** the engine yesterday.","","Pasado regular → verbo + ed","past"],
-["v19","V","Encontré una grieta.","I **found** a crack.","","find es irregular → found","past"],
-["v20","V","Ella vio el daño.","She **saw** the damage.","","see es irregular → saw","past"],
-["v21","V","No firmé la tarjeta.","I **didn't sign** the card.","","Pasado negativo: didn't + verbo tal cual","past"],
-["v22","V","¿Lo hiciste?","**Did** you **do** it?","","Pregunta en pasado: Did + you + verbo tal cual","past"],
-["v23","V","Ayer estaba en el hangar.","I **was** in the hangar yesterday.","","Pasado de am / is → was","be"],
-["v24","V","Estábamos cansados.","We **were** tired.","","Pasado de are → were","be"],
-["v25","V","Ya lo reviso yo.","I'**ll check** it.","Lo decides en el momento.","Decisión ahora → will + verbo (I'll)","will"],
-["v26","V","Te llamo mañana.","I'**ll call** you tomorrow.","","Promesa → will + verbo","will"],
-["v27","V","No lo haré.","I **won't do** it.","","won't = will not","will"],
-["v28","V","Voy a medirlo (ya lo tengo pensado).","I'**m going to measure** it.","Hablado: I'm gonna measure it.","Plan: I'm going to + verbo","going"],
-["v29","V","Ella va a firmar la tarjeta.","She'**s going to sign** the card.","","she → is going to + verbo","going"],
-["v30","V","Vamos a cambiar la junta.","We'**re going to change** the seal.","","we → are going to + verbo","going"],
-["v31","V","Puedo hacerlo.","I **can do** it.","","can + verbo tal cual","can"],
-["v32","V","Él no puede firmarlo.","He **can't sign** it.","Nunca \"cans\".","can't + verbo, igual con he / she","can"],
-["v33","V","¿Me puedes ayudar?","**Can** you **help** me?","","Pregunta: Can + you + verbo","can"],
-["v34","V","Tengo que medirlo otra vez.","I **have to measure** it again.","","Obligación: have to + verbo","have"],
-["v35","V","Ella tiene que firmarlo.","She **has to sign** it.","","she → has to","have"],
-["v36","V","No toques la pieza.","**Don't touch** the part.","","Orden negativa: Don't + verbo","imp"],
-["v37","V","Mira esto.","**Look** at this.","look at = mirar algo.","Orden: el verbo solo","imp"],
-["v38","V","Hay una grieta.","**There's** a crack.","","Hay (una) → there is","there"],
-["v39","V","Hay dos grietas.","**There are** two cracks.","","Hay (varias) → there are","there"],
-// ---------- Nivel 3: frases un poco más largas, todavía básicas ----------
-["x01","V","Ayer encontré una grieta y se lo dije a mi jefe.","Yesterday I **found** a crack and I **told** my boss.","","Pasado irregular: find → found, tell → told","past"],
-["x02","V","No pude firmarlo porque faltaba el papeleo.","I **couldn't sign** it because the paperwork **was** missing.","","Pasado de can → could / couldn't","can"],
-["x03","V","Mañana voy a revisar el motor con Marco.","Tomorrow I'**m going to check** the engine with Marco.","","Plan: I'm going to + verbo","going"],
-["x04","V","¿Has terminado?","**Have** you **finished**?","","Pregunta: Have + you + verbo en -ed","perfect"],
-["x05","V","Ya he terminado.","I'**ve finished**.","","I've = I have + verbo en -ed","perfect"],
-["x06","V","Todavía no lo he visto.","I **haven't seen** it yet.","yet al final = todavía.","haven't + participio · see → seen","perfect"],
-["x07","V","Lo he revisado dos veces.","I'**ve checked** it twice.","twice = dos veces.","I've + verbo en -ed","perfect"],
-["x08","V","Ella no estaba en el trabajo ayer.","She **wasn't** at work yesterday.","","Pasado de is → was · negativo wasn't","be"],
-["x09","V","¿Qué estás haciendo?","What **are** you **doing**?","","Pregunta ahora mismo: What + are + you + -ing","cont"],
-["x10","V","¿Dónde pusiste la llave?","Where **did** you **put** the wrench?","","Pregunta en pasado: Where + did + you + verbo tal cual","past"],
-["x11","V","Si está fuera de límites, la rechazo.","If it's out of limits, I'**ll reject** it.","","If + presente, y luego will + verbo","will"],
-["x12","V","Tenemos que terminar esto antes de las 4.","We **have to finish** this before 4.","","Obligación: have to + verbo","have"],
-["x13","V","Él no vino ayer porque estaba enfermo.","He **didn't come** yesterday because he **was** sick.","","didn't + verbo tal cual · is → was","past"],
-["x14","V","¿Vas a trabajar el sábado?","**Are** you **going to work** on Saturday?","","Pregunta de plan: Are you going to + verbo","going"],
-["x15","V","Deberías preguntarle al inspector.","You **should ask** the inspector.","","should + verbo = deberías","can"],
-["x16","V","Estaba midiendo la pieza cuando llamaste.","I **was measuring** the part when you **called**.","","Lo que estabas haciendo: was + -ing","cont"],
-// ---------- Frases útiles ----------
-["i01","F","Inspección","Está dentro de límites, puede seguir.","It's within limits, good to go.","\"Good to go\" = listo, adelante.","",""],
-["i02","F","Inspección","Esto está fuera de límites.","This is out of limits.","","",""],
-["i04","F","Inspección","¿Le puedes echar un vistazo a esto?","Can you take a look at this?","Más natural que \"Can you check this?\".","",""],
-["i07","F","Inspección","Lo vuelvo a medir para asegurarme.","Let me measure it again, just to be sure.","","",""],
-["i11","F","Inspección","¿Quién firmó esto?","Who **signed** this?","","Pasado regular: sign → signed","past"],
-["i12","F","Inspección","Todavía no lo puedo firmar.","I **can't sign** it yet.","yet = todavía (en negativo).","can't + verbo","can"],
-["i13","F","Inspección","Todo correcto, lo firmo.","All good, I'**ll sign** it.","","Decisión ahora → will","will"],
-["i16","F","Inspección","El número de serie no coincide con el papeleo.","The serial number **doesn't match** the paperwork.","","it → doesn't + verbo","present"],
-["i17","F","Inspección","Primero una inspección visual.","Let's do a visual first.","En el taller se dice solo \"a visual\".","",""],
-["i19","F","Inspección","¿Cuál es el límite según el manual?","What's the limit per the manual?","","",""],
-["i21","F","Inspección","Esto es chatarra.","That's scrap.","","",""],
-["d03","F","Defectos","Veo una grieta aquí.","I can see a crack here.","","",""],
-["m01","F","Manual","Según el manual…","As per the manual…","","",""],
-["m06","F","Manual","Rellena la orden de trabajo.","Fill in the work order.","","",""],
-["m08","F","Manual","Si no está escrito, no se ha hecho.","If it's not written down, it didn't happen.","La regla de oro del taller.","",""],
-["m10","F","Manual","¿Qué par de apriete llevan estos?","What's the torque on these?","","",""],
-["m11","F","Manual","Hay que pedir la pieza.","We need to order the part.","","",""],
-["t01","F","Taller","¿Dónde está la dinamométrica?","Where's the torque wrench?","","",""],
-["t02","F","Taller","¿Me pasas eso?","Can you pass me that?","","",""],
-["t03","F","Taller","Dame un segundo.","Give me a sec.","","",""],
-["t05","F","Taller","Entendido.","Got it.","Corto y natural, vale para todo.","",""],
-["t06","F","Taller","Voy a ello.","I'm on it.","","",""],
-["t08","F","Taller","¿Para cuándo lo necesitas?","When do you need it by?","Ojo al \"by\" del final.","Fecha límite → by","ptiempo"],
-["t10","F","Taller","Ojo, todavía está caliente.","Heads up, it's still hot.","\"Heads up\" = aviso, ojo.","",""],
-["t11","F","Taller","Espera, espera.","Hold on, hold on.","","",""],
-["t13","F","Taller","Me falta una herramienta.","I'm missing a tool.","Esto para el trabajo hasta que aparezca.","",""],
-["t15","F","Taller","¿Qué queda pendiente?","What's still open?","","",""],
-["t17","F","Taller","Lo dejamos por hoy.","Let's call it a day.","","",""],
-["c01","F","Comunicar","Perdona, ¿me lo repites?","Sorry, say that again?","Mucho más natural que \"Can you repeat, please?\".","",""],
-["c02","F","Comunicar","¿Puedes hablar más despacio, por favor?","Can you slow down a bit, please?","","",""],
-["c03","F","Comunicar","A ver si lo he entendido bien…","Just to make sure I got it…","Y repites lo que has entendido.","",""],
-["c05","F","Comunicar","¿Cómo se dice esto en inglés?","What do you call this in English?","","",""],
-["c06","F","Comunicar","No estoy seguro, déjame comprobarlo.","I'm not sure, let me check.","","",""],
-["c07","F","Comunicar","Tiene sentido.","Makes sense.","","",""],
-["c08","F","Comunicar","Fallo mío.","My bad.","","",""],
-["c09","F","Comunicar","No pasa nada.","No worries.","","",""],
-["c13","F","Comunicar","¿Me lo enseñas?","Can you show me?","","",""],
-["c14","F","Comunicar","Recibido.","Copy that.","Viene de la radio; en aviación se usa mucho.","",""],
-["c15","F","Comunicar","Me parece bien.","Sounds good.","","",""],
-["s01","F","Café","¿Qué tal?","How's it going?","Respuesta típica: \"Not bad, you?\".","",""],
-["s03","F","Café","Soy nuevo, empecé esta semana.","I'm new, I **started** this week.","","Pasado regular → start + ed","past"],
-["s04","F","Café","Soy de España, me acabo de mudar.","I'm from Spain, I just **moved** here.","","Pasado regular → move + d","past"],
-["s05","F","Café","¿Cuánto tiempo llevas aquí?","How long have you been here?","Frase hecha: apréndela tal cual.","",""],
-["s07","F","Café","¿Vamos a por un café?","Wanna grab a coffee?","\"Wanna\" = want to, en hablado.","",""],
-["s09","F","Café","Hasta mañana.","See you tomorrow.","","",""],
-["s10","F","Café","Buen finde.","Have a good weekend.","","",""]
-];
-
-const TYPE = {W:"Palabra",P:"Preposición",V:"Verbo",F:"Frase"};
+const $ = id => document.getElementById(id);
+const TYPE_NAME = {W:"Palabra",P:"Preposición",V:"Verbo",F:"Frase"};
+const LVL_NAME = {1:"A1–A2",2:"B1",3:"B2"};
 const INSTR = {
   W:"Di la palabra en inglés.",
   P:"¿Qué preposición va en el hueco? Dila en voz alta.",
   V:"Dilo en inglés. Fíjate en el verbo.",
   F:"Dilo en voz alta en inglés."
 };
-function norm(r){
-  const t=r[1];
-  if(t==="W") return {id:r[0],t,cat:TYPE.W,q:r[2],a:r[3],note:r[4],hint:"Empieza por \""+r[3][0].toUpperCase()+"…\"",ref:""};
-  if(t==="P") return {id:r[0],t,cat:TYPE.P,q:r[2],qsub:r[3],a:r[4],note:"",hint:r[5],ref:"r-"+r[6]};
-  if(t==="V") return {id:r[0],t,cat:TYPE.V,q:r[2],a:r[3],note:r[4],hint:r[5],ref:r[6]?"r-"+r[6]:""};
-  return {id:r[0],t,cat:r[2],q:r[3],a:r[4],note:r[5],hint:r[6],ref:r[7]?"r-"+r[7]:""};
-}
-// Dificultad 1 (fácil), 2 (medio), 3 (difícil)
-const P_EASY = ["p01","p02","p03","p04","p18","p21","p22","p26","p33"];
-const V_LEVEL = {be:1,there:1,imp:1,present:2,cont:2,can:2,past:3,will:3,going:3,have:3,perfect:3};
-function levelOf(c){
-  if(c.id[0]==="x") return 3;
-  if(c.t==="W") return 1;
-  if(c.t==="P") return P_EASY.includes(c.id)?1:2;
-  if(c.t==="V"){ if(["v07","v08","v09"].includes(c.id))return 1; if(["v23","v24"].includes(c.id))return 2; return V_LEVEL[c.ref.slice(2)]||2 }
-  const n=plain(c.a).length; return n<20?1:n<34?2:3;
-}
-const CARDS = DECK.map(norm);
-CARDS.forEach(c=>c.lvl=levelOf(c));
-const BY_ID = Object.fromEntries(CARDS.map(c=>[c.id,c]));
-const GOAL = 10, NEW_MAX = 12;
-const LVL_NAME = {1:"FÁCIL",2:"MEDIO",3:"DIFÍCIL"};
-// 0–3 puntos: fácil · 4–6: medio · 7–9: difícil
-function tierFor(points){return points<4?1:points<7?2:3}
-const INTERVALS = [1,1,3,7,14,30];
+const GOAL = 10;
+const NEW_MIN = 5, NEW_MAX = 12;      // tarjetas nuevas por reto diario
+const UNLOCK3 = 80;                   // acertadas necesarias para que el reto diario meta B2 nuevas
+const ROUND = 20;                     // tarjetas por ronda de práctica
+const INTERVALS = [1,1,3,7,14,30,60];
 
-const $ = id => document.getElementById(id);
+let CARDS = [], BY_ID = {};
+
 function dayKey(d=new Date()){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return dayKey(d)}
 function plain(s){return s.replace(/\*\*/g,"")}
 function fillGaps(q,a){const parts=a.split(" … ");let i=0;return q.replace(/___/g,()=>parts[Math.min(i++,parts.length-1)])}
 function enText(c){return c.t==="P"?fillGaps(c.q,c.a):plain(c.a)}
 function esText(c){return c.t==="P"?c.qsub:c.q}
-// Pinta texto con **marcas** sin usar innerHTML
 function paint(el,s){el.textContent="";s.split("**").forEach((p,i)=>{if(!p)return;if(i%2){const m=document.createElement("mark");m.textContent=p;el.append(m)}else el.append(p)})}
 function paintGap(el,q){el.textContent="";q.split("___").forEach((p,i)=>{if(i){const g=document.createElement("span");g.className="gap";g.innerHTML="&nbsp;";el.append(g)}el.append(p)})}
+// Orden estable pero mezclado, para que las nuevas no salgan siempre del mismo tema
+function hash(s){let h=2166136261;for(const ch of s){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
-function fresh(){return {v:2,updated:0,cards:{},streak:0,lastDone:null,day:null}}
+function prepCard(c){
+  if(c.t==="W"&&!c.hint) c.hint="Empieza por \""+c.a[0].toUpperCase()+"…\"";
+  c.note=c.note||""; c.hint=c.hint||"";
+  c.refId=c.ref?"r-"+c.ref:"";
+  c.ord=hash(c.id);
+  const cat=c.cat&&c.cat!==TYPE_NAME[c.t]?c.cat:"";
+  c.label=TYPE_NAME[c.t]+(cat?" · "+cat:"");
+  return c;
+}
+
+// ---------- Estado ----------
+function fresh(){return {v:4,updated:0,cards:{},streak:0,best:0,lastDone:null,lost:0,day:null}}
 let S = fresh();
-try{const raw=localStorage.getItem("canalla-v1"); if(raw) S=JSON.parse(raw)}catch(e){}
+try{const raw=localStorage.getItem("canalla-v1"); if(raw) S=Object.assign(fresh(),JSON.parse(raw))}catch(e){}
+let mode="daily";
+try{mode=localStorage.getItem("canalla-mode")==="practice"?"practice":"daily"}catch(e){}
 
 let dbRef=null, saving=Promise.resolve();
 function save(){
@@ -625,135 +676,219 @@ function save(){
   if(dbRef){const snap=JSON.stringify(S);
     saving=saving.then(()=>dbRef.set({state:snap})).then(()=>{$("sync").textContent="Guardado en tu cuenta"}).catch(()=>{$("sync").textContent="Guardado solo en este dispositivo"})}
 }
+function learnedCount(){let n=0;for(const id in S.cards)if(BY_ID[id]&&S.cards[id].box>=1)n++;return n}
+function maxTier(){return learnedCount()>=UNLOCK3?3:2}
 
-// Racha: si pasa un día entero sin completar, se pierde entera
+// Repetición espaciada: acierto → más días hasta el próximo repaso; fallo → mañana
+function grade(id,ok){
+  const c=S.cards[id]||(S.cards[id]={box:0,due:dayKey(),ok:0,fail:0});
+  if(ok){c.ok++;c.box=Math.min(c.box+1,INTERVALS.length-1);c.due=addDays(INTERVALS[c.box])}
+  else{c.fail++;c.box=0;c.due=addDays(1)}
+}
+
+// ---------- Reto diario ----------
 function checkStreak(){
   if(S.streak>0&&S.lastDone&&S.lastDone<addDays(-1)){S.lost=S.streak;S.streak=0;save()}
 }
 function ensureDay(){
   const today=dayKey();
   checkStreak();
-  if(!S.day||S.day.date!==today||S.day.ver!==3){
+  if(!S.day||S.day.date!==today||S.day.ver!==4){
     const keep=S.day&&S.day.date===today?S.day:null;
-    S.day={date:today,points:keep?keep.points:0,log:keep?keep.log:[],extra:keep?keep.extra:false,cur:null,newCount:0,ver:3};
+    S.day={date:today,points:keep?keep.points:0,log:keep?keep.log:[],extra:false,cur:null,newCount:keep?Math.min(keep.newCount||0,NEW_MAX):0,ver:4};
     save();
   }
 }
-// Elige la siguiente tarjeta según los puntos: primero repasos de ese nivel, luego nuevas, y variando el tipo
-function nextId(){
+// 0–3 puntos: A1–A2 · 4–6: B1 · 7–9: B2 (B2 nuevas solo con 80 acertadas; antes, repasos o B1)
+function tierFor(points){return points<4?1:points<7?2:3}
+function nextDaily(){
   const d=S.day;
   if(d.cur&&BY_ID[d.cur]) return d.cur;
-  const today=dayKey(), target=tierFor(d.points);
+  const today=dayKey(), target=tierFor(d.points), cap=maxTier();
   const recent=d.log.slice(-4).map(l=>l.id), okToday=new Set(d.log.filter(l=>l.ok).map(l=>l.id));
   const lastType=d.log.length?BY_ID[d.log[d.log.length-1].id]?.t:null;
   const free=c=>!recent.includes(c.id)&&!okToday.has(c.id);
-  const byVariety=list=>{const other=list.filter(c=>c.t!==lastType);return other.length?other:list};
-  let pick=null;
-  for(const lvl of [target,target-1,target+1,target-2,target+2].filter(l=>l>=1&&l<=3)){
+  const variety=list=>{const o=list.filter(c=>c.t!==lastType);return o.length?o:list};
+  // Una de cada dos tarjetas es nueva hasta llegar al mínimo del día
+  const wantNew=d.newCount<NEW_MIN&&d.log.length%2===1;
+  const levels=[target,target-1,target-2,target+1].filter((l,i,a)=>l>=1&&l<=3&&a.indexOf(l)===i);
+  let pick=null,isNew=false;
+  for(const lvl of levels){
     const due=CARDS.filter(c=>c.lvl===lvl&&S.cards[c.id]&&S.cards[c.id].due<=today&&free(c))
-      .sort((a,b)=>S.cards[a.id].box-S.cards[b.id].box);
-    if(due.length){pick=byVariety(due)[0];break}
-    if(d.newCount<NEW_MAX){
-      const fresh=CARDS.filter(c=>c.lvl===lvl&&!S.cards[c.id]&&free(c));
-      if(fresh.length){pick=byVariety(fresh)[0];d.newCount++;break}
-    }
+      .sort((a,b)=>S.cards[a.id].box-S.cards[b.id].box||S.cards[a.id].due.localeCompare(S.cards[b.id].due));
+    const fresh=d.newCount<NEW_MAX&&lvl<=cap?CARDS.filter(c=>c.lvl===lvl&&!S.cards[c.id]&&free(c)).sort((a,b)=>a.ord-b.ord):[];
+    const tries=wantNew||!due.length?[[fresh,true],[due,false]]:[[due,false],[fresh,true]];
+    for(const [list,n] of tries) if(list.length){pick=variety(list.slice(0,30))[0];isNew=n;break}
+    if(pick)break;
   }
-  // Ya no quedan repasos ni nuevas: práctica extra con tarjetas vistas de ese nivel
   if(!pick){
-    const pool=CARDS.filter(c=>c.lvl===target&&!recent.includes(c.id));
+    const pool=CARDS.filter(c=>c.lvl===Math.min(target,cap)&&S.cards[c.id]&&!recent.includes(c.id));
     const any=pool.length?pool:CARDS.filter(c=>!recent.includes(c.id));
     pick=any[Math.floor(Math.random()*any.length)];
   }
+  if(isNew)d.newCount++;
   d.cur=pick.id; save();
   return d.cur;
 }
-
-function answer(ok){
-  const d=S.day, id=d.cur;
-  const c=S.cards[id]||(S.cards[id]={box:0,due:dayKey(),ok:0,fail:0});
-  if(ok){c.ok++;c.box=Math.min(c.box+1,INTERVALS.length-1);c.due=addDays(INTERVALS[c.box])}
-  else{c.fail++;c.box=0;c.due=addDays(1)}
+function answerDaily(ok){
+  const d=S.day,id=d.cur;
+  grade(id,ok);
   d.log.push({id,ok});
-  d.points=Math.max(0,d.points+(ok?1:-1));
+  // Puntos de control: al llegar a 4 o a 7 ya no se baja de ahí
+  d.floor=Math.max(d.floor||0,d.points>=7?7:d.points>=4?4:0);
+  d.points=Math.max(d.floor,d.points+(ok?1:-1));
+  d.floor=Math.max(d.floor,d.points>=7?7:d.points>=4?4:0);
   d.cur=null;
-  if(d.points>=GOAL&&!d.extra&&S.lastDone!==d.date){
+  if(d.points>=GOAL&&S.lastDone!==d.date){
     S.streak=(S.lastDone===addDays(-1)?S.streak:0)+1;S.lastDone=d.date;S.lost=0;
     S.best=Math.max(S.best||0,S.streak);
   }
-  save(); render();
+  save();render();
 }
 
-let tts=null, current=null;
-function render(){
-  ensureDay();
-  const d=S.day, closed=d.points>=GOAL&&!d.extra;
-  $("pts").textContent=Math.min(d.points,GOAL);
-  $("gauge").innerHTML=Array.from({length:GOAL},(_,i)=>`<i class="${i<d.points?"on":""}"></i>`).join("");
-  const st=S.streak||0, doneToday=S.lastDone===d.date;
+// ---------- Práctica libre ----------
+let P={on:false,done:false,queue:[],i:0,ok:0,bad:0,again:new Set()};
+function getOpt(name){const el=document.querySelector(`input[name="${name}"]:checked`);return el?el.value:""}
+function sourceFilter(src){
+  const today=dayKey();
+  if(src==="fail") return c=>S.cards[c.id]&&S.cards[c.id].box===0&&S.cards[c.id].fail>0;
+  if(src==="seen") return c=>!!S.cards[c.id];
+  if(src==="new") return c=>!S.cards[c.id];
+  return ()=>true;
+}
+function practicePool(){
+  const f=sourceFilter(getOpt("src")), lvl=+getOpt("lvl"), typ=getOpt("typ");
+  return CARDS.filter(c=>f(c)&&(!lvl||c.lvl===lvl)&&(!typ||c.t===typ));
+}
+function updateCounts(){
+  const lvl=+getOpt("lvl"),typ=getOpt("typ");
+  const base=c=>(!lvl||c.lvl===lvl)&&(!typ||c.t===typ);
+  ["fail","random","seen","new"].forEach(s=>{const f=sourceFilter(s);
+    $("c"+s[0].toUpperCase()+s.slice(1)).textContent=CARDS.filter(c=>base(c)&&f(c)).length});
+  const n=practicePool().length;
+  $("startPractice").disabled=!n;
+  $("startPractice").textContent=n?`Empezar (${Math.min(n,ROUND)} tarjetas)`:"No hay tarjetas con estas opciones";
+}
+function startPractice(){
+  const pool=practicePool();
+  if(!pool.length)return;
+  P={on:true,done:false,queue:shuffle(pool.map(c=>c.id)).slice(0,ROUND),i:0,ok:0,bad:0,again:new Set()};
+  render();
+}
+function answerPractice(ok){
+  const id=P.queue[P.i];
+  grade(id,ok);
+  if(ok)P.ok++;else{P.bad++;
+    // La fallada vuelve a salir al final de la ronda (una sola vez)
+    if(!P.again.has(id)){P.again.add(id);P.queue.push(id)}}
+  P.i++;
+  if(P.i>=P.queue.length){P.on=false;P.done=true}
+  save();render();
+}
+
+// ---------- Pintar ----------
+let tts=null,current=null;
+function showCard(c,status){
+  current=c;
+  $("card").classList.remove("flipped");
+  document.querySelector(".back").setAttribute("aria-hidden","true");
+  document.querySelector(".front").removeAttribute("aria-hidden");
+  $("cat").textContent=$("cat2").textContent=c.label;
+  $("status").textContent=status;
+  const q=$("q");q.classList.toggle("word",c.t==="W");
+  if(c.t==="P")paintGap(q,c.q);else q.textContent=c.q;
+  $("qsub").textContent=c.t==="P"?c.qsub:"";$("qsub").hidden=c.t!=="P";
+  $("instr").textContent=INSTR[c.t];
+  $("hintBox").hidden=true;$("hintBtn").hidden=!c.hint;
+  $("hintText").textContent=c.hint;$("hintRef").hidden=!c.refId;
+  const a=$("a");a.classList.toggle("word",c.t==="W");
+  paint(a,c.t==="P"||c.t==="W"?"**"+c.a+"**":c.a);
+  $("asub").textContent=c.t==="P"?fillGaps(c.q,c.a):c.t==="W"?"":c.q;$("asub").hidden=c.t==="W";
+  $("note").textContent=c.note;$("note").hidden=!c.note;
+  const showRule=c.t!=="W"&&!!c.hint;
+  $("ruleBox").hidden=!showRule;$("ruleText").textContent=c.hint;$("ruleRef").hidden=!c.refId;
+}
+function cardStatus(c,extra){const s=S.cards[c.id];return `NIVEL ${c.lvl} · ${LVL_NAME[c.lvl]} · `+(extra||(!s?"NUEVA":s.box===0?"FALLADA":"REPASO"))}
+
+function renderStreak(){
+  const d=S.day,st=S.streak||0,doneToday=S.lastDone===d.date;
   $("streakN").textContent=st;
   $("streakL").innerHTML=(st===1?"DÍA":"DÍAS")+"<br>SEGUIDOS";
-  const tier=tierFor(d.points);
-  [1,2,3].forEach(t=>$("t"+t).classList.toggle("now",!closed&&t===tier));
-  const msg=$("streakMsg");
-  if(doneToday){msg.className="streak-msg good";msg.textContent=`Hoy completado: llevas ${st} ${st===1?"día":"días"} seguidos.`+(S.best>st?` Tu récord: ${S.best}.`:"")}
-  else if(S.lost){msg.className="streak-msg lost";msg.textContent=`Perdiste tu racha de ${S.lost} ${S.lost===1?"día":"días"}. Completa hoy y empieza otra.`}
-  else if(st>0){msg.className="streak-msg warn";msg.textContent=`Llevas ${st} ${st===1?"día":"días"}. Si hoy no llegas a 10 puntos, mañana la racha vuelve a 0.`}
-  else{msg.className="streak-msg";msg.textContent="Llega a 10 puntos hoy y suma tu primer día de racha. Si te saltas un día, la racha vuelve a 0."}
-
-  $("play").hidden=closed; $("done").hidden=!closed;
-  if(closed){
-    const okN=d.log.filter(l=>l.ok).length, badN=new Set(d.log.filter(l=>!l.ok).map(l=>l.id)).size;
-    $("sOk").textContent=okN; $("sBad").textContent=badN;
-    $("sMaster").textContent=Object.entries(S.cards).filter(([id,c])=>BY_ID[id]&&c.box>=1).length;
-    $("doneText").textContent=`${d.log.length} tarjetas hoy. Las falladas vuelven mañana.`;
+  const m=$("streakMsg");
+  if(doneToday){m.className="msg good";m.textContent=`Reto de hoy completado: llevas ${st} ${st===1?"día":"días"} seguidos.`+(S.best>st?` Tu récord: ${S.best}.`:"")}
+  else if(S.lost){m.className="msg lost";m.textContent=`Perdiste tu racha de ${S.lost} ${S.lost===1?"día":"días"}. Completa el reto de hoy y empieza otra.`}
+  else if(st>0){m.className="msg warn";m.textContent=`Llevas ${st} ${st===1?"día":"días"}. Si hoy no llegas a 10 puntos, mañana la racha vuelve a 0.`}
+  else{m.className="msg";m.textContent="Llega a 10 puntos hoy y suma tu primer día de racha. Si te saltas un día, la racha vuelve a 0."}
+}
+function render(){
+  if(!CARDS.length)return;
+  ensureDay();
+  renderStreak();
+  const daily=mode==="daily",d=S.day,closed=d.points>=GOAL;
+  $("modeDaily").setAttribute("aria-pressed",daily);$("modePractice").setAttribute("aria-pressed",!daily);
+  $("loading").hidden=true;
+  $("dailyHead").hidden=!daily;
+  $("practiceSetup").hidden=daily||P.on||P.done;
+  $("practiceHead").hidden=daily||!P.on;
+  $("practiceDone").hidden=daily||!P.done;
+  $("done").hidden=!daily||!closed;
+  $("play").hidden=daily?closed:!P.on;
+  if(daily){
+    $("pts").textContent=Math.min(d.points,GOAL);
+    $("gauge").innerHTML=Array.from({length:GOAL},(_,i)=>`<i class="${i<d.points?"on":""}"></i>`).join("");
+    const tier=tierFor(d.points),cap=maxTier();
+    [1,2,3].forEach(t=>{$("t"+t).classList.toggle("now",!closed&&t===tier);$("t"+t).classList.toggle("locked",t>cap)});
+    $("t3").textContent=cap<3?`B2 · se abre con ${UNLOCK3} acertadas`:"B2";
+    $("gauge").title=d.floor?`Punto de control: ya no bajas de ${d.floor}`:"";
+    if(closed){
+      const okN=d.log.filter(l=>l.ok).length,badN=new Set(d.log.filter(l=>!l.ok).map(l=>l.id)).size;
+      $("sOk").textContent=okN;$("sBad").textContent=badN;$("sMaster").textContent=learnedCount();
+      $("doneText").textContent=`${d.log.length} tarjetas hoy. Las falladas vuelven mañana.`;
+    }else showCard(BY_ID[nextDaily()],cardStatus(BY_ID[d.cur]));
   }else{
-    const c=current=BY_ID[nextId()], s=S.cards[c.id];
-    $("card").classList.remove("flipped");
-    document.querySelector(".back").setAttribute("aria-hidden","true");
-    document.querySelector(".front").removeAttribute("aria-hidden");
-    $("cat").textContent=$("cat2").textContent=c.t==="F"?"Frase · "+c.cat:c.cat;
-    $("status").textContent="NIVEL "+c.lvl+" · "+(!s?"NUEVA":s.box===0?"FALLADA":"REPASO");
-    // Anverso
-    const q=$("q"); q.classList.toggle("word",c.t==="W");
-    if(c.t==="P") paintGap(q,c.q); else q.textContent=c.q;
-    $("qsub").textContent=c.t==="P"?c.qsub:""; $("qsub").hidden=c.t!=="P";
-    $("instr").textContent=INSTR[c.t];
-    $("hintBox").hidden=true; $("hintBtn").hidden=!c.hint;
-    $("hintText").textContent=c.hint; $("hintRef").hidden=!c.ref;
-    // Reverso
-    const a=$("a"); a.classList.toggle("word",c.t==="W");
-    if(c.t==="P"){paint(a,"**"+c.a+"**")} else paint(a,c.t==="W"?"**"+c.a+"**":c.a);
-    $("asub").textContent=c.t==="P"?fillGaps(c.q,c.a):c.t==="W"?"":c.q; $("asub").hidden=c.t==="W";
-    $("note").textContent=c.note; $("note").hidden=!c.note;
-    const showRule=c.t!=="W"&&!!c.hint;
-    $("ruleBox").hidden=!showRule; $("ruleText").textContent=c.hint; $("ruleRef").hidden=!c.ref;
+    if(P.on){
+      const c=BY_ID[P.queue[P.i]];
+      $("pPos").textContent=P.i+1;$("pLen").textContent=P.queue.length;$("pOk").textContent=P.ok;$("pBad").textContent=P.bad;
+      showCard(c,cardStatus(c,"PRÁCTICA"));
+    }else if(P.done){
+      const tot=P.ok+P.bad;
+      $("pDoneText").textContent=`${P.ok} bien y ${P.bad} mal de ${tot} respuestas.`+(P.bad?" Las falladas vuelven mañana en el reto diario.":" ¡Ronda limpia!");
+    }else updateCounts();
   }
   renderLists();
 }
 function fillList(ul,ids){
   ul.textContent="";
-  ids.forEach(id=>{const c=BY_ID[id];const el=document.createElement("li");
+  const LIMIT=150;
+  ids.slice(0,LIMIT).forEach(id=>{const c=BY_ID[id];const el=document.createElement("li");
     const b=document.createElement("b");b.textContent=enText(c);const s=document.createElement("span");s.textContent=esText(c);
     el.append(b,s);ul.append(el)});
+  if(ids.length>LIMIT){const p=document.createElement("li");p.className="more";p.textContent=`… y ${ids.length-LIMIT} más.`;ul.append(p)}
   if(!ids.length){const p=document.createElement("li");p.className="empty";p.textContent="Todavía nada.";ul.append(p)}
 }
 function renderLists(){
   const entries=Object.entries(S.cards).filter(([id])=>BY_ID[id]);
   const fail=entries.filter(([,c])=>c.box===0).map(([id])=>id);
   const ok=entries.filter(([,c])=>c.box>=1).sort((a,b)=>b[1].box-a[1].box).map(([id])=>id);
-  $("nFail").textContent=fail.length; $("nOk").textContent=ok.length;
-  fillList($("lFail"),fail); fillList($("lOk"),ok);
+  $("nFail").textContent=fail.length;$("nOk").textContent=ok.length;
+  fillList($("lFail"),fail);fillList($("lOk"),ok);
+  const pa=$("progressAll");pa.textContent="";
+  [1,2,3].forEach(l=>{
+    const tot=CARDS.filter(c=>c.lvl===l).length,got=CARDS.filter(c=>c.lvl===l&&S.cards[c.id]&&S.cards[c.id].box>=1).length;
+    const row=document.createElement("div");row.textContent=`${LVL_NAME[l]}: ${got} de ${tot} acertadas`;
+    const bar=document.createElement("div");bar.className="bar";const i=document.createElement("i");i.style.width=(tot?got/tot*100:0)+"%";bar.append(i);
+    pa.append(row,bar);
+  });
 }
 
-// Chuleta
-function showTab(p){
-  $("tabV").setAttribute("aria-selected",p==="V"); $("tabP").setAttribute("aria-selected",p==="P");
-  $("paneV").hidden=p!=="V"; $("paneP").hidden=p!=="P";
-}
+// ---------- Chuleta ----------
+const PANES={V:"paneV",G:"paneG",P:"paneP"};
+function showTab(k){Object.entries(PANES).forEach(([t,p])=>{$("tab"+t).setAttribute("aria-selected",t===k);$(p).hidden=t!==k})}
 function openSheet(ref){
-  $("sheet").hidden=false; document.body.style.overflow="hidden";
+  $("sheet").hidden=false;document.body.style.overflow="hidden";
   const target=ref&&document.getElementById(ref);
-  showTab(target&&target.closest("#paneP")?"P":"V");
+  const pane=target?target.closest(".sheet-body").id:"paneV";
+  showTab(Object.keys(PANES).find(k=>PANES[k]===pane)||"V");
   if(target){requestAnimationFrame(()=>{target.scrollIntoView({block:"start"});target.classList.add("flash");setTimeout(()=>target.classList.remove("flash"),1500)})}
   else $("sheet").scrollTop=0;
   $("closeSheet").focus({preventScroll:true});
@@ -761,28 +896,41 @@ function openSheet(ref){
 function closeSheet(){$("sheet").hidden=true;document.body.style.overflow=""}
 $("openSheet").onclick=()=>openSheet("");
 $("closeSheet").onclick=closeSheet;
-$("tabV").onclick=()=>{showTab("V");$("sheet").scrollTop=0};
-$("tabP").onclick=()=>{showTab("P");$("sheet").scrollTop=0};
-$("hintRef").onclick=$("ruleRef").onclick=()=>openSheet(current&&current.ref);
+Object.keys(PANES).forEach(k=>$("tab"+k).onclick=()=>{showTab(k);$("sheet").scrollTop=0});
+$("hintRef").onclick=$("ruleRef").onclick=()=>openSheet(current&&current.refId);
 
+// ---------- Controles ----------
+function setMode(m){mode=m;try{localStorage.setItem("canalla-mode",m)}catch(e){}render();window.scrollTo({top:0})}
+$("modeDaily").onclick=()=>setMode("daily");
+$("modePractice").onclick=()=>setMode("practice");
+$("goPractice").onclick=()=>setMode("practice");
+document.querySelectorAll("#practiceSetup input").forEach(i=>i.addEventListener("change",updateCounts));
+$("startPractice").onclick=startPractice;
+$("stopPractice").onclick=()=>{P.on=false;P.done=P.ok+P.bad>0;render()};
+$("againPractice").onclick=startPractice;
+$("setupPractice").onclick=()=>{P.done=false;render()};
 $("hintBtn").onclick=()=>{$("hintBox").hidden=false;$("hintBtn").hidden=true};
 $("flip").onclick=()=>{$("card").classList.add("flipped");
   document.querySelector(".front").setAttribute("aria-hidden","true");
-  document.querySelector(".back").removeAttribute("aria-hidden"); $("ok").focus({preventScroll:true})};
-$("ok").onclick=()=>answer(true);
-$("bad").onclick=()=>answer(false);
-$("extra").onclick=()=>{const d=S.day;d.extra=true;d.points=0;d.cur=null;d.newCount=Math.min(d.newCount,NEW_MAX-6);save();render()};
+  document.querySelector(".back").removeAttribute("aria-hidden");$("ok").focus({preventScroll:true})};
+$("ok").onclick=()=>mode==="daily"?answerDaily(true):answerPractice(true);
+$("bad").onclick=()=>mode==="daily"?answerDaily(false):answerPractice(false);
 $("speak").onclick=()=>{
   if(!current)return;
   if(tts){tts.speak(enText(current),{language:"en",rate:.9}).catch(()=>{});return}
   if("speechSynthesis" in window){
     speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(enText(current));u.lang="en-GB";u.rate=.9;
-    const v=speechSynthesis.getVoices().find(v=>/^en[-_]GB/i.test(v.lang))||speechSynthesis.getVoices().find(v=>/^en/i.test(v.lang));
+    const vs=speechSynthesis.getVoices(),v=vs.find(v=>/^en[-_]GB/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang));
     if(v)u.voice=v;
     speechSynthesis.speak(u);
   }
 };
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&!$("sheet").hidden){closeSheet();return}
+  if(["BUTTON","INPUT"].includes(e.target.tagName)&&(e.key===" "||e.key==="Enter"))return;
+  if(e.key===" "&&$("sheet").hidden&&!$("play").hidden&&!$("card").classList.contains("flipped")){e.preventDefault();$("flip").click()}
+});
 
 // Versión pública (PWA): botón para instalar y voz del propio móvil
 if(window.CANALLA_PWA){
@@ -797,33 +945,33 @@ if(window.CANALLA_PWA){
       else $("installHelp").hidden=!$("installHelp").hidden;
     };
   }
-  if("speechSynthesis" in window) $("speak").hidden=false;
+  if("speechSynthesis" in window)$("speak").hidden=false;
 }
-document.addEventListener("keydown",e=>{
-  if(e.key==="Escape"&&!$("sheet").hidden){closeSheet();return}
-  if(e.target.tagName==="BUTTON"&&(e.key===" "||e.key==="Enter"))return;
-  if(e.key===" "&&$("sheet").hidden&&!$("card").classList.contains("flipped")){e.preventDefault();$("flip").click()}
-});
 
-render();
+// ---------- Arranque: cargar el mazo ----------
+fetch("deck.json").then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(list=>{
+  CARDS=list.map(prepCard);
+  BY_ID=Object.fromEntries(CARDS.map(c=>[c.id,c]));
+  render();
+}).catch(()=>{$("loading").textContent="No se han podido cargar las tarjetas. Comprueba la conexión y vuelve a abrir la app."});
 
-// Capacidades: progreso en tu cuenta (móvil y PC iguales) y voz en inglés
+// Capacidades en claude.ai: progreso en tu cuenta y voz en inglés
 (async()=>{
-  if(!window.claude?.use) return;
-  try{tts=await claude.use("tts"); if(tts) $("speak").hidden=false}catch(e){}
+  if(!window.claude?.use)return;
+  try{tts=await claude.use("tts");if(tts)$("speak").hidden=false}catch(e){}
   try{
     const [db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
-    if(!db||!user) return;
-    const uid=await user.id(); if(!uid) return;
+    if(!db||!user)return;
+    const uid=await user.id();if(!uid)return;
     const ref=db.collection("data/users/"+uid).doc("progreso");
     const timer=setTimeout(()=>{$("sync").textContent="Guardado solo en este dispositivo"},10000);
-    const snap=await ref.get(); clearTimeout(timer);
+    const snap=await ref.get();clearTimeout(timer);
     dbRef=ref;
     if(snap.exists){
       const remote=JSON.parse(snap.data().state||"null");
-      if(remote&&remote.updated>(S.updated||0)){S=remote;try{localStorage.setItem("canalla-v1",JSON.stringify(S))}catch(e){}render()}
-      else if(S.updated) save();
-    }else if(S.updated) save();
+      if(remote&&remote.updated>(S.updated||0)){S=Object.assign(fresh(),remote);try{localStorage.setItem("canalla-v1",JSON.stringify(S))}catch(e){}render()}
+      else if(S.updated)save();
+    }else if(S.updated)save();
     $("sync").textContent="Guardado en tu cuenta";
   }catch(e){$("sync").textContent="Guardado solo en este dispositivo"}
 })();
