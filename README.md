@@ -1,6 +1,6 @@
 # Canalla Inglés
 
-10 minutos al día de inglés práctico para trabajar en un taller de motores de avión. Nivel A1–A2.
+10 minutos al día de inglés práctico para trabajar en un taller de motores de avión. De A1 a B2: 1009 tarjetas.
 
 **Abrir la app:** https://bontay2003.github.io/canalla-ingles/
 
@@ -28,5 +28,6 @@ claude
 ```
 
 - `app/index.html`: la app (también se publica como Artifact de Claude).
+- `app/deck-parts/*.json`: el contenido por tipo. `node scripts/build-deck.mjs` lo valida y genera `app/deck.json`.
 - `node scripts/build-pwa.mjs`: genera la versión pública en `docs/` (GitHub Pages).
 - `scripts/make-icons.ps1`: genera los iconos PNG en `docs/icons/` (Windows).
