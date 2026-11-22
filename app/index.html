@@ -1,0 +1,830 @@
+<title>Canalla Inglés</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: una columna tipo "tarjeta de inspección", contador de 10 puntos arriba, chuleta en hoja deslizante */
+:root{
+  --bg:#ECEFF1; --surface:#FFFFFF; --ink:#16212B; --muted:#5B6B78; --line:#CBD3D9;
+  --accent:#D99A00; --accent-bg:#FFF3D1; --ok:#1E7A4C; --ok-bg:#E3F2EA; --bad:#B42318; --bad-bg:#FBE7E5;
+  --display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F161C; --surface:#18222B; --ink:#E6ECF0; --muted:#93A3AF; --line:#2C3A45;
+  --accent:#F0B429; --accent-bg:#3A2E0F; --ok:#4CC38A; --ok-bg:#12301F; --bad:#F2766B; --bad-bg:#3A1714; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F161C; --surface:#18222B; --ink:#E6ECF0; --muted:#93A3AF; --line:#2C3A45;
+  --accent:#F0B429; --accent-bg:#3A2E0F; --ok:#4CC38A; --ok-bg:#12301F; --bad:#F2766B; --bad-bg:#3A1714; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45}
+.wrap{max-width:540px;margin:0 auto;padding-block:20px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:18px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:700;font-size:1.5rem;margin:0;letter-spacing:.01em}
+.head-right{display:flex;align-items:center;gap:10px}
+.meta{font-family:var(--mono);font-size:.75rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.gauge{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.gauge i{height:10px;border-radius:2px;background:var(--line);transition:background .2s}
+.gauge i.on{background:var(--accent)}
+.gauge-row{display:flex;flex-direction:column;gap:6px}
+.gauge-label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.gauge-label b{color:var(--ink)}
+.tiers{display:grid;grid-template-columns:4fr 3fr 3fr;gap:4px;font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;color:var(--muted)}
+.tiers span{border-top:1px solid var(--line);padding-top:3px}
+.tiers span.now{color:var(--ink);border-top:2px solid var(--accent);font-weight:600}
+.streak{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:4px 10px 4px 6px}
+.streak b{font-family:var(--display);font-size:1.25rem;font-variant-numeric:tabular-nums;min-width:1.6em;text-align:center;
+  background:var(--accent);color:#16212B;border-radius:3px;padding:0 4px;line-height:1.35}
+.streak span{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;color:var(--muted);line-height:1.2}
+.streak-msg{margin:0;font-size:.88rem;padding:8px 12px;border-radius:4px;border:1px solid var(--line);background:var(--surface)}
+.streak-msg.warn{border-color:var(--accent);background:var(--accent-bg)}
+.streak-msg.lost{border-color:var(--bad);background:var(--bad-bg);color:var(--bad)}
+.streak-msg.good{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
+
+.card{display:grid;perspective:1200px}
+.face{grid-area:1/1;position:relative;background:var(--surface);border:1px solid var(--line);border-radius:6px;min-height:320px;
+  padding:22px 20px 20px 24px;display:flex;flex-direction:column;gap:14px;backface-visibility:hidden;
+  transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+.face::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;border-radius:6px 0 0 6px;background:var(--accent)}
+.back{transform:rotateY(180deg)}
+.card.flipped .front{transform:rotateY(-180deg)}
+.card.flipped .back{transform:rotateY(0)}
+@media (prefers-reduced-motion:reduce){.face{transition:none}}
+.tagline{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.cat{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  border:1px solid var(--line);padding:2px 8px;border-radius:3px}
+.status{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.big{font-family:var(--display);font-weight:600;font-size:1.6rem;line-height:1.2;margin:0;text-wrap:balance}
+.big.word{font-size:2.1rem}
+.gap{display:inline-block;min-width:3.2em;border-bottom:3px solid var(--accent);margin:0 .1em}
+.sub{color:var(--muted);font-size:1rem;margin:0}
+.hint{color:var(--muted);font-size:.9rem;margin:0}
+.ans{font-family:var(--display);font-weight:700;font-size:1.7rem;line-height:1.2;margin:0;text-wrap:balance}
+.ans.word{font-size:2.2rem}
+mark{background:var(--accent-bg);color:inherit;border-bottom:2px solid var(--accent);padding:0 .12em;border-radius:2px}
+.note{color:var(--muted);font-size:.92rem;margin:0}
+.rule{display:flex;flex-direction:column;gap:6px;background:var(--accent-bg);border-radius:4px;padding:10px 12px;font-size:.95rem}
+.rule b{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;color:var(--muted);font-weight:600}
+.link{background:none;border:0;padding:0;color:var(--ink);text-decoration:underline;text-underline-offset:3px;font-size:.88rem;align-self:flex-start}
+.spacer{flex:1}
+button{font:inherit;cursor:pointer;border-radius:5px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:12px 14px}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600;font-size:1.05rem;padding:14px}
+.small-btn{font-size:.85rem;padding:6px 12px;font-family:var(--mono)}
+.front-actions{display:grid;grid-template-columns:auto 1fr;gap:10px}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-ok,.btn-bad{display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:600;font-size:1.05rem;padding:12px 8px}
+.btn-ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.btn-bad{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.btn-ok small,.btn-bad small{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;font-weight:500}
+
+.done{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:24px 20px;display:flex;flex-direction:column;gap:12px}
+.stamp{align-self:flex-start;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--ok);
+  border:2px solid var(--ok);padding:4px 10px;border-radius:3px;transform:rotate(-3deg)}
+.done h2{font-family:var(--display);margin:0;font-size:1.4rem}
+.done p{margin:0;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stats div{border:1px solid var(--line);border-radius:4px;padding:10px;text-align:center}
+.stats b{display:block;font-family:var(--display);font-size:1.5rem;font-variant-numeric:tabular-nums}
+.stats span{font-size:.75rem;color:var(--muted)}
+
+details.list{background:var(--surface);border:1px solid var(--line);border-radius:6px}
+details.list summary{padding:12px 16px;cursor:pointer;font-weight:600;display:flex;justify-content:space-between;gap:8px}
+details.list summary span{font-family:var(--mono);color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
+details.list ul{list-style:none;margin:0;padding:0 16px 12px;display:flex;flex-direction:column}
+details.list li{padding:8px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:1px;min-width:0}
+details.list li b{font-weight:600}
+details.list li span{color:var(--muted);font-size:.88rem}
+.empty{color:var(--muted);font-size:.9rem}
+.sync{font-family:var(--mono);font-size:.7rem;color:var(--muted);text-align:center}
+
+/* Chuleta */
+.sheet{position:fixed;inset:0;z-index:20;background:var(--bg);overflow-y:auto;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet-head{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--line);z-index:1}
+.sheet-head .in{max-width:640px;margin:0 auto;padding-block:12px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:10px}
+.sheet-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sheet-top h2{font-family:var(--display);margin:0;font-size:1.3rem}
+.tabs{display:flex;gap:6px}
+.tabs button{padding:8px 14px;font-size:.9rem}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.sheet-body{max-width:640px;margin:0 auto;padding-block:16px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:14px}
+.sec{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;scroll-margin-top:120px;transition:box-shadow .3s}
+.sec.flash{box-shadow:0 0 0 3px var(--accent)}
+.sec h3{font-family:var(--display);margin:0;font-size:1.15rem}
+.sec p{margin:0;font-size:.93rem}
+.sec .use{color:var(--muted)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+td,th{text-align:left;padding:6px 8px;border-top:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;color:var(--muted);font-weight:600;border-top:0}
+td:first-child{font-weight:600;white-space:nowrap}
+.gold{background:var(--accent-bg);border-color:var(--accent)}
+.install-row{display:flex;flex-direction:column;gap:10px}
+.install-row .rule span b{font-family:inherit;font-size:inherit;letter-spacing:0;color:var(--ink)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Canalla Inglés</h1>
+    <div class="head-right">
+      <div class="streak" title="Días seguidos completados"><b id="streakN">0</b><span id="streakL">DÍAS<br>SEGUIDOS</span></div>
+      <button class="small-btn" id="openSheet">Chuleta</button>
+    </div>
+  </header>
+
+  <div class="install-row" id="installRow" hidden>
+    <button class="primary" id="install">Descargar app</button>
+    <div class="rule" id="installHelp" hidden>
+      <b>CÓMO INSTALARLA</b>
+      <span><b>iPhone:</b> abre esta página en Safari, pulsa el botón Compartir (el cuadrado con la flecha) y elige «Añadir a pantalla de inicio».</span>
+      <span><b>Android:</b> en Chrome, abre el menú ⋮ y elige «Instalar aplicación» o «Añadir a pantalla de inicio».</span>
+    </div>
+  </div>
+
+  <div class="gauge-row">
+    <div class="gauge-label"><span>Puntos de hoy</span><span><b id="pts">0</b> / 10</span></div>
+    <div class="gauge" id="gauge"></div>
+    <div class="tiers"><span id="t1">FÁCIL</span><span id="t2">MEDIO</span><span id="t3">DIFÍCIL</span></div>
+  </div>
+  <p class="streak-msg" id="streakMsg"></p>
+
+  <section id="play">
+    <div class="card" id="card">
+      <div class="face front">
+        <div class="tagline"><span class="cat" id="cat"></span><span class="status" id="status"></span></div>
+        <p class="big" id="q"></p>
+        <p class="sub" id="qsub"></p>
+        <p class="hint" id="instr"></p>
+        <div class="rule" id="hintBox" hidden><b>PISTA</b><span id="hintText"></span><button class="link" id="hintRef" hidden>Ver en la chuleta</button></div>
+        <div class="spacer"></div>
+        <div class="front-actions">
+          <button id="hintBtn">Pista</button>
+          <button class="primary" id="flip">Girar tarjeta</button>
+        </div>
+      </div>
+      <div class="face back" aria-hidden="true">
+        <div class="tagline"><span class="cat" id="cat2"></span><button class="small-btn" id="speak" hidden>▶ Escuchar</button></div>
+        <p class="ans" id="a"></p>
+        <p class="sub" id="asub"></p>
+        <p class="note" id="note"></p>
+        <div class="rule" id="ruleBox" hidden><b>FÍJATE</b><span id="ruleText"></span><button class="link" id="ruleRef" hidden>Ver en la chuleta</button></div>
+        <div class="spacer"></div>
+        <div class="answers">
+          <button class="btn-bad" id="bad">Fallé −1<small>REJECT</small></button>
+          <button class="btn-ok" id="ok">La clavé +1<small>SERVICEABLE</small></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="done" id="done" hidden>
+    <span class="stamp">SIGNED OFF</span>
+    <h2>Día cerrado. Buen trabajo.</h2>
+    <p id="doneText"></p>
+    <div class="stats">
+      <div><b id="sOk">0</b><span>Bien hoy</span></div>
+      <div><b id="sBad">0</b><span>Para mañana</span></div>
+      <div><b id="sMaster">0</b><span>Acertadas</span></div>
+    </div>
+    <button id="extra">Una ronda extra (opcional)</button>
+  </section>
+
+  <details class="list">
+    <summary>Repaso de mañana <span id="nFail">0</span></summary>
+    <ul id="lFail"></ul>
+  </details>
+  <details class="list">
+    <summary>Acertadas <span id="nOk">0</span></summary>
+    <ul id="lOk"></ul>
+  </details>
+  <p class="sync" id="sync">Guardado en este dispositivo</p>
+</div>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-head"><div class="in">
+    <div class="sheet-top"><h2 id="sheetTitle">Chuleta</h2><button class="small-btn" id="closeSheet">Cerrar</button></div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tabV" aria-selected="true">Verbos</button>
+      <button role="tab" id="tabP" aria-selected="false">Preposiciones</button>
+    </div>
+  </div></div>
+
+  <div class="sheet-body" id="paneV">
+    <section class="sec gold" id="r-oro">
+      <h3>Las 2 reglas de oro</h3>
+      <p><b>1.</b> En presente, con <b>he / she / it</b> el verbo lleva <b>-s</b>: I check → she check<b>s</b>.</p>
+      <p><b>2.</b> Después de <b>can, will, don't, doesn't, didn't, to</b> va el verbo <b>tal cual</b>, sin -s ni -ed: she <b>can</b> check, he <b>didn't</b> sign.</p>
+    </section>
+
+    <section class="sec" id="r-be">
+      <h3>To be (ser / estar)</h3>
+      <div class="tbl"><table>
+        <tr><th>PERSONA</th><th>AFIRMATIVO</th><th>NEGATIVO</th><th>PREGUNTA</th></tr>
+        <tr><td>I</td><td>am · I'm</td><td>I'm not</td><td>Am I…?</td></tr>
+        <tr><td>you / we / they</td><td>are · you're, we're, they're</td><td>aren't</td><td>Are you…?</td></tr>
+        <tr><td>he / she / it</td><td>is · he's, she's, it's</td><td>isn't</td><td>Is it…?</td></tr>
+      </table></div>
+      <p class="use">Pasado: I / he / she / it <b>was</b> · you / we / they <b>were</b>. Negativo: wasn't, weren't.</p>
+    </section>
+
+    <section class="sec" id="r-there">
+      <h3>Hay: there is / there are</h3>
+      <p><b>There's</b> a crack. (uno) · <b>There are</b> two cracks. (varios)</p>
+      <p class="use">Pregunta: Is there…? / Are there…? · Pasado: there was / there were.</p>
+    </section>
+
+    <section class="sec" id="r-present">
+      <h3>Presente simple: rutinas y cosas que siempre pasan</h3>
+      <div class="tbl"><table>
+        <tr><th>PERSONA</th><th>AFIRMATIVO</th><th>NEGATIVO</th><th>PREGUNTA</th></tr>
+        <tr><td>I / you / we / they</td><td>check</td><td>don't check</td><td>Do you check…?</td></tr>
+        <tr><td>he / she / it</td><td>check<b>s</b></td><td>doesn't check</td><td>Does she check…?</td></tr>
+      </table></div>
+      <p class="use">Ojo: have → she <b>has</b> · do → she <b>does</b> · go → she <b>goes</b> · fix → she <b>fixes</b>.</p>
+    </section>
+
+    <section class="sec" id="r-cont">
+      <h3>Presente continuo: lo que haces ahora mismo</h3>
+      <p><b>am / is / are + verbo-ing</b></p>
+      <p>I'm checking · she's cleaning · they're waiting</p>
+      <p class="use">Negativo: I'm not working · Pregunta: Are you working?</p>
+      <p>En pasado (lo que estabas haciendo): <b>was / were + verbo-ing</b> · I was measuring it when you called.</p>
+    </section>
+
+    <section class="sec" id="r-past">
+      <h3>Pasado simple</h3>
+      <p>Regulares: <b>+ed</b> → checked, measured, signed, cleaned, changed.</p>
+      <p>Negativo y pregunta con <b>did</b> + verbo tal cual: I <b>didn't</b> sign · <b>Did</b> you check it?</p>
+      <div class="tbl"><table>
+        <tr><th>VERBO</th><th>PASADO</th><th>SIGNIFICA</th></tr>
+        <tr><td>be</td><td>was / were</td><td>ser, estar</td></tr>
+        <tr><td>have</td><td>had</td><td>tener</td></tr>
+        <tr><td>do</td><td>did</td><td>hacer</td></tr>
+        <tr><td>go</td><td>went</td><td>ir</td></tr>
+        <tr><td>get</td><td>got</td><td>conseguir, llegar</td></tr>
+        <tr><td>see</td><td>saw</td><td>ver</td></tr>
+        <tr><td>find</td><td>found</td><td>encontrar</td></tr>
+        <tr><td>make</td><td>made</td><td>hacer, fabricar</td></tr>
+        <tr><td>take</td><td>took</td><td>coger, llevar</td></tr>
+        <tr><td>give</td><td>gave</td><td>dar</td></tr>
+        <tr><td>put</td><td>put</td><td>poner</td></tr>
+        <tr><td>say / tell</td><td>said / told</td><td>decir</td></tr>
+        <tr><td>break</td><td>broke</td><td>romper</td></tr>
+        <tr><td>come</td><td>came</td><td>venir</td></tr>
+        <tr><td>know</td><td>knew</td><td>saber</td></tr>
+      </table></div>
+    </section>
+
+    <section class="sec" id="r-will">
+      <h3>Futuro con will: decides ahora, prometes, ofreces</h3>
+      <p><b>will + verbo</b> (igual para todos): I'll check it · she'll call you</p>
+      <p class="use">Negativo: <b>won't</b> (= will not) · Pregunta: Will you…?</p>
+    </section>
+
+    <section class="sec" id="r-going">
+      <h3>Futuro con going to: planes ya decididos</h3>
+      <p><b>am / is / are + going to + verbo</b></p>
+      <div class="tbl"><table>
+        <tr><td>I</td><td>I'm going to measure it</td></tr>
+        <tr><td>he / she / it</td><td>She's going to sign it</td></tr>
+        <tr><td>you / we / they</td><td>We're going to change it</td></tr>
+      </table></div>
+      <p class="use">Hablando rápido suena "gonna": I'm gonna check it.</p>
+    </section>
+
+    <section class="sec" id="r-can">
+      <h3>Can / can't: poder, saber hacer</h3>
+      <p><b>can + verbo</b>, igual para todos. Nunca "cans" ni "can to".</p>
+      <p>I can do it · he can't sign it · Can you help me?</p>
+      <p class="use">Pasado: <b>could / couldn't</b> · I couldn't sign it.</p>
+      <p><b>should + verbo</b> = debería · You should ask the inspector.</p>
+    </section>
+
+    <section class="sec" id="r-perfect">
+      <h3>Ya / todavía no / alguna vez: have + participio</h3>
+      <p><b>I've / you've / we've</b> + participio · <b>she's / he's</b> + participio</p>
+      <p>I've finished · I've checked it twice · I haven't seen it yet · Have you finished?</p>
+      <p class="use">Regulares: participio = -ed (checked). Irregulares útiles: see → seen, do → done, find → found, break → broken.</p>
+    </section>
+
+    <section class="sec" id="r-have">
+      <h3>Have to: tener que</h3>
+      <p>I / you / we / they <b>have to</b> · he / she / it <b>has to</b></p>
+      <p class="use">Negativo: don't have to = no hace falta.</p>
+    </section>
+
+    <section class="sec" id="r-imp">
+      <h3>Órdenes (imperativo)</h3>
+      <p>El verbo solo: <b>Check</b> the part. · Negativo: <b>Don't</b> touch it.</p>
+      <p class="use">Para sonar amable: Can you check the part, please?</p>
+    </section>
+  </div>
+
+  <div class="sheet-body" id="paneP" hidden>
+    <section class="sec" id="r-plugar">
+      <h3>Lugar</h3>
+      <div class="tbl"><table>
+        <tr><td>in</td><td>dentro de · in the box, in the hangar</td></tr>
+        <tr><td>on</td><td>encima, sobre una superficie · on the bench, on the blade</td></tr>
+        <tr><td>at</td><td>en un punto o sitio concreto · at work, at the gate, at home</td></tr>
+        <tr><td>into</td><td>hacia dentro (movimiento) · put it into the box</td></tr>
+        <tr><td>under</td><td>debajo de · under the paint</td></tr>
+        <tr><td>above / below</td><td>por encima / por debajo · above the limit</td></tr>
+        <tr><td>between</td><td>entre (dos cosas) · between the holes</td></tr>
+        <tr><td>next to</td><td>al lado de · next to the door</td></tr>
+        <tr><td>behind</td><td>detrás de · behind the engine</td></tr>
+        <tr><td>in front of</td><td>delante de · in front of the hangar</td></tr>
+        <tr><td>to</td><td>hacia, a (dirección) · I go to work</td></tr>
+        <tr><td>from</td><td>de, desde (origen) · I'm from Spain</td></tr>
+      </table></div>
+    </section>
+    <section class="sec" id="r-ptiempo">
+      <h3>Tiempo</h3>
+      <div class="tbl"><table>
+        <tr><td>at</td><td>horas · at 7 o'clock, at night</td></tr>
+        <tr><td>on</td><td>días y fechas · on Monday, on 3 May</td></tr>
+        <tr><td>in</td><td>meses, años, partes del día · in May, in the morning</td></tr>
+        <tr><td>from … to</td><td>de … a · from 7 to 4</td></tr>
+        <tr><td>by</td><td>como tarde, para · by Friday</td></tr>
+        <tr><td>for</td><td>durante (cuánto tiempo) · for two hours</td></tr>
+        <tr><td>until / till</td><td>hasta · until tomorrow</td></tr>
+        <tr><td>before / after</td><td>antes / después de · before lunch</td></tr>
+        <tr><td>during</td><td>durante (algo) · during the inspection</td></tr>
+      </table></div>
+    </section>
+    <section class="sec" id="r-potras">
+      <h3>Otras muy usadas en el taller</h3>
+      <div class="tbl"><table>
+        <tr><td>for</td><td>para · a part for the engine</td></tr>
+        <tr><td>with / without</td><td>con / sin · with gloves</td></tr>
+        <tr><td>by</td><td>por (quién lo hace) · signed by the inspector</td></tr>
+        <tr><td>of</td><td>de · a part of the engine</td></tr>
+        <tr><td>about</td><td>sobre, acerca de · talk about the problem</td></tr>
+        <tr><td>within</td><td>dentro de (límites) · within limits</td></tr>
+        <tr><td>out of</td><td>fuera de · out of limits</td></tr>
+        <tr><td>per</td><td>según · per the manual</td></tr>
+      </table></div>
+    </section>
+  </div>
+</div>
+
+<script>
+/* Mazo. Tipos:
+   W palabra:    [id,"W", español, inglés, nota]
+   P preposición:[id,"P", frase con ___, traducción, respuesta (varias con " … "), pista, ref]
+   V verbo:      [id,"V", español, inglés con **marca**, nota, pista, ref]
+   F frase:      [id,"F", categoría, español, inglés con **marca** opcional, nota, pista, ref] */
+const DECK = [
+// ---------- Palabras ----------
+["w01","W","pieza","part",""],
+["w02","W","herramienta","tool",""],
+["w03","W","taller","workshop","También \"the shop\"."],
+["w04","W","motor","engine","Pronuncia \"EN-jin\"."],
+["w05","W","álabe","blade","Fan blade, turbine blade…"],
+["w06","W","perno / tornillo","bolt","Bolt lleva tuerca. Screw va roscado directamente."],
+["w07","W","tuerca","nut",""],
+["w08","W","arandela","washer",""],
+["w09","W","junta","seal","También \"gasket\"."],
+["w10","W","grieta","crack",""],
+["w11","W","mella","nick",""],
+["w12","W","abolladura","dent",""],
+["w13","W","desgaste","wear","Pronuncia como \"wair\"."],
+["w14","W","corrosión","corrosion","Pronuncia \"kuh-ROH-zhun\"."],
+["w15","W","límite","limit",""],
+["w16","W","medida","measurement","El verbo es \"measure\" (medir)."],
+["w17","W","pie de rey","calliper","Vernier calliper."],
+["w18","W","llave (herramienta)","wrench","En inglés británico: \"spanner\"."],
+["w19","W","llave dinamométrica","torque wrench","Torque se dice \"tork\"."],
+["w20","W","linterna","torch","En americano: \"flashlight\"."],
+["w21","W","lupa","magnifying glass",""],
+["w22","W","guantes","gloves",""],
+["w23","W","gafas de seguridad","safety glasses",""],
+["w24","W","turno","shift","Morning shift, night shift."],
+["w25","W","compañero de trabajo","colleague","Pronuncia \"KOL-eeg\". Más coloquial: \"workmate\"."],
+["w26","W","jefe de equipo","team lead","También \"supervisor\"."],
+["w27","W","firma / firmar","signature / sign","La g de sign no suena: \"sain\"."],
+["w28","W","número de serie","serial number","S/N."],
+["w29","W","número de pieza","part number","P/N."],
+["w30","W","almacén","stores","En aviación se dice \"stores\"."],
+["w31","W","banco de trabajo","workbench",""],
+["w32","W","aceite","oil",""],
+["w33","W","combustible","fuel",""],
+["w34","W","suelto / apretado","loose / tight",""],
+["w35","W","dañado","damaged",""],
+["w36","W","limpio / sucio","clean / dirty",""],
+["w37","W","apto / no apto (pieza)","serviceable / unserviceable","No apto se abrevia U/S."],
+["w38","W","ayer / hoy / mañana","yesterday / today / tomorrow",""],
+["w39","W","temprano / tarde","early / late",""],
+["w40","W","descanso","break","Coffee break, lunch break."],
+["w41","W","comida (del mediodía)","lunch",""],
+["w42","W","cajón","drawer","Pronuncia \"dror\"."],
+["w43","W","agujero","hole",""],
+["w44","W","rosca","thread","Pronuncia \"zred\", con la th como la z española."],
+["w45","W","papeleo","paperwork",""],
+// ---------- Preposiciones ----------
+["p01","P","The part is ___ the box.","La pieza está dentro de la caja.","in","Dentro de algo → in","plugar"],
+["p02","P","The tool is ___ the bench.","La herramienta está sobre el banco.","on","Encima de una superficie → on","plugar"],
+["p03","P","I'm ___ work.","Estoy en el trabajo.","at","Un sitio concreto (work, home, the gate) → at","plugar"],
+["p04","P","There's corrosion ___ the paint.","Hay corrosión debajo de la pintura.","under","Debajo → under","plugar"],
+["p05","P","It's ___ limits.","Está dentro de límites.","within","Dentro de límites → within","potras"],
+["p06","P","It's ___ limits.","Está fuera de límites.","out of","Fuera de → out of","potras"],
+["p07","P","___ the manual, the limit is 2 mm.","Según el manual, el límite es 2 mm.","Per","Según → per","potras"],
+["p08","P","The crack is ___ the two holes.","La grieta está entre los dos agujeros.","between","Entre dos cosas → between","plugar"],
+["p09","P","My shift is ___ 7 ___ 4.","Mi turno es de 7 a 4.","from … to","De … a … → from … to","ptiempo"],
+["p10","P","I start ___ 7 o'clock.","Empiezo a las 7.","at","Horas → at","ptiempo"],
+["p11","P","I don't work ___ Sunday.","No trabajo el domingo.","on","Días de la semana → on","ptiempo"],
+["p12","P","We have a meeting ___ the morning.","Tenemos una reunión por la mañana.","in","Partes del día → in (pero: at night)","ptiempo"],
+["p13","P","I need it ___ Friday.","Lo necesito para el viernes.","by","Como tarde, fecha límite → by","ptiempo"],
+["p14","P","This part is ___ the engine.","Esta pieza es para el motor.","for","Para → for","potras"],
+["p15","P","I worked there ___ two years.","Trabajé allí durante dos años.","for","Cuánto tiempo dura → for","ptiempo"],
+["p16","P","Can you come ___ me?","¿Puedes venir conmigo?","with","Con → with","potras"],
+["p17","P","Don't work ___ gloves.","No trabajes sin guantes.","without","Sin → without","potras"],
+["p18","P","The torque wrench is ___ the drawer.","La dinamométrica está en el cajón.","in","Dentro de algo → in","plugar"],
+["p19","P","The value is ___ the limit.","El valor está por encima del límite.","above","Por encima → above","plugar"],
+["p20","P","The wear is ___ the limit. It's OK.","El desgaste está por debajo del límite. Está bien.","below","Por debajo → below","plugar"],
+["p21","P","Look ___ the engine.","Mira detrás del motor.","behind","Detrás → behind","plugar"],
+["p22","P","The box is ___ the door.","La caja está al lado de la puerta.","next to","Al lado de → next to","plugar"],
+["p23","P","Wash your hands ___ lunch.","Lávate las manos antes de comer.","before","Antes de → before","ptiempo"],
+["p24","P","Call me ___ the inspection.","Llámame después de la inspección.","after","Después de → after","ptiempo"],
+["p25","P","It's signed ___ the inspector.","Está firmado por el inspector.","by","Quién lo hace → by","potras"],
+["p26","P","I'm ___ Spain.","Soy de España.","from","Origen → from","plugar"],
+["p27","P","Put it ___ the box.","Mételo en la caja.","into","Movimiento hacia dentro → into","plugar"],
+["p28","P","It's ___ page 12.","Está en la página 12.","on","Páginas → on","plugar"],
+["p29","P","Let's talk ___ the problem.","Hablemos sobre el problema.","about","Sobre un tema → about","potras"],
+["p30","P","Wait ___ tomorrow.","Espera hasta mañana.","until","Hasta → until (hablado: till)","ptiempo"],
+["p31","P","I go ___ work by bus.","Voy al trabajo en autobús.","to","Dirección, a dónde vas → to","plugar"],
+["p32","P","It's a part ___ the engine.","Es una pieza del motor.","of","De → of","potras"],
+["p33","P","I live ___ Zurich.","Vivo en Zúrich.","in","Ciudades y países → in","plugar"],
+["p34","P","I was tired ___ the night shift.","Estaba cansado durante el turno de noche.","during","Durante algo → during","ptiempo"],
+// ---------- Verbos ----------
+["v01","V","Soy inspector.","**I'm** an inspector.","Con profesiones va \"a / an\".","I → am (I'm)","be"],
+["v02","V","Ella es la supervisora.","**She's** the supervisor.","","she → is (she's)","be"],
+["v03","V","Ellos están en el hangar.","**They're** in the hangar.","","they → are (they're)","be"],
+["v04","V","La pieza está bien.","The part **is** OK.","","Una cosa = it → is","be"],
+["v05","V","No está bien.","It **isn't** OK.","También: It's not OK.","Negativo de is → isn't","be"],
+["v06","V","¿Está listo?","**Is** it ready?","","Pregunta: le das la vuelta → Is it…?","be"],
+["v07","V","Reviso la pieza.","I **check** the part.","","Con I, el verbo va tal cual","present"],
+["v08","V","Él revisa la pieza.","He **checks** the part.","","he / she / it → verbo + s","present"],
+["v09","V","Ella trabaja en el turno de mañana.","She **works** on the morning shift.","Ojo: on the shift.","she → verbo + s","present"],
+["v10","V","No uso esta herramienta.","I **don't use** this tool.","","Negativo: don't + verbo","present"],
+["v11","V","Él no firma la tarjeta.","He **doesn't sign** the card.","","he / she → doesn't + verbo, y el verbo pierde la -s","present"],
+["v12","V","¿Tienes el manual?","**Do** you **have** the manual?","","Pregunta: Do + you + verbo","present"],
+["v13","V","¿Trabaja ella hoy?","**Does** she **work** today?","","Pregunta con she: Does + she + verbo sin -s","present"],
+["v14","V","Él tiene una pregunta.","He **has** a question.","","have con he / she / it → has","present"],
+["v15","V","Estoy midiendo la grieta.","I'**m measuring** the crack.","","Ahora mismo: am + verbo-ing","cont"],
+["v16","V","Él está limpiando el álabe.","He'**s cleaning** the blade.","","he → is + verbo-ing","cont"],
+["v17","V","Estamos esperando la pieza.","We'**re waiting** for the part.","wait for = esperar algo.","we → are + verbo-ing","cont"],
+["v18","V","Ayer revisé el motor.","I **checked** the engine yesterday.","","Pasado regular → verbo + ed","past"],
+["v19","V","Encontré una grieta.","I **found** a crack.","","find es irregular → found","past"],
+["v20","V","Ella vio el daño.","She **saw** the damage.","","see es irregular → saw","past"],
+["v21","V","No firmé la tarjeta.","I **didn't sign** the card.","","Pasado negativo: didn't + verbo tal cual","past"],
+["v22","V","¿Lo hiciste?","**Did** you **do** it?","","Pregunta en pasado: Did + you + verbo tal cual","past"],
+["v23","V","Ayer estaba en el hangar.","I **was** in the hangar yesterday.","","Pasado de am / is → was","be"],
+["v24","V","Estábamos cansados.","We **were** tired.","","Pasado de are → were","be"],
+["v25","V","Ya lo reviso yo.","I'**ll check** it.","Lo decides en el momento.","Decisión ahora → will + verbo (I'll)","will"],
+["v26","V","Te llamo mañana.","I'**ll call** you tomorrow.","","Promesa → will + verbo","will"],
+["v27","V","No lo haré.","I **won't do** it.","","won't = will not","will"],
+["v28","V","Voy a medirlo (ya lo tengo pensado).","I'**m going to measure** it.","Hablado: I'm gonna measure it.","Plan: I'm going to + verbo","going"],
+["v29","V","Ella va a firmar la tarjeta.","She'**s going to sign** the card.","","she → is going to + verbo","going"],
+["v30","V","Vamos a cambiar la junta.","We'**re going to change** the seal.","","we → are going to + verbo","going"],
+["v31","V","Puedo hacerlo.","I **can do** it.","","can + verbo tal cual","can"],
+["v32","V","Él no puede firmarlo.","He **can't sign** it.","Nunca \"cans\".","can't + verbo, igual con he / she","can"],
+["v33","V","¿Me puedes ayudar?","**Can** you **help** me?","","Pregunta: Can + you + verbo","can"],
+["v34","V","Tengo que medirlo otra vez.","I **have to measure** it again.","","Obligación: have to + verbo","have"],
+["v35","V","Ella tiene que firmarlo.","She **has to sign** it.","","she → has to","have"],
+["v36","V","No toques la pieza.","**Don't touch** the part.","","Orden negativa: Don't + verbo","imp"],
+["v37","V","Mira esto.","**Look** at this.","look at = mirar algo.","Orden: el verbo solo","imp"],
+["v38","V","Hay una grieta.","**There's** a crack.","","Hay (una) → there is","there"],
+["v39","V","Hay dos grietas.","**There are** two cracks.","","Hay (varias) → there are","there"],
+// ---------- Nivel 3: frases un poco más largas, todavía básicas ----------
+["x01","V","Ayer encontré una grieta y se lo dije a mi jefe.","Yesterday I **found** a crack and I **told** my boss.","","Pasado irregular: find → found, tell → told","past"],
+["x02","V","No pude firmarlo porque faltaba el papeleo.","I **couldn't sign** it because the paperwork **was** missing.","","Pasado de can → could / couldn't","can"],
+["x03","V","Mañana voy a revisar el motor con Marco.","Tomorrow I'**m going to check** the engine with Marco.","","Plan: I'm going to + verbo","going"],
+["x04","V","¿Has terminado?","**Have** you **finished**?","","Pregunta: Have + you + verbo en -ed","perfect"],
+["x05","V","Ya he terminado.","I'**ve finished**.","","I've = I have + verbo en -ed","perfect"],
+["x06","V","Todavía no lo he visto.","I **haven't seen** it yet.","yet al final = todavía.","haven't + participio · see → seen","perfect"],
+["x07","V","Lo he revisado dos veces.","I'**ve checked** it twice.","twice = dos veces.","I've + verbo en -ed","perfect"],
+["x08","V","Ella no estaba en el trabajo ayer.","She **wasn't** at work yesterday.","","Pasado de is → was · negativo wasn't","be"],
+["x09","V","¿Qué estás haciendo?","What **are** you **doing**?","","Pregunta ahora mismo: What + are + you + -ing","cont"],
+["x10","V","¿Dónde pusiste la llave?","Where **did** you **put** the wrench?","","Pregunta en pasado: Where + did + you + verbo tal cual","past"],
+["x11","V","Si está fuera de límites, la rechazo.","If it's out of limits, I'**ll reject** it.","","If + presente, y luego will + verbo","will"],
+["x12","V","Tenemos que terminar esto antes de las 4.","We **have to finish** this before 4.","","Obligación: have to + verbo","have"],
+["x13","V","Él no vino ayer porque estaba enfermo.","He **didn't come** yesterday because he **was** sick.","","didn't + verbo tal cual · is → was","past"],
+["x14","V","¿Vas a trabajar el sábado?","**Are** you **going to work** on Saturday?","","Pregunta de plan: Are you going to + verbo","going"],
+["x15","V","Deberías preguntarle al inspector.","You **should ask** the inspector.","","should + verbo = deberías","can"],
+["x16","V","Estaba midiendo la pieza cuando llamaste.","I **was measuring** the part when you **called**.","","Lo que estabas haciendo: was + -ing","cont"],
+// ---------- Frases útiles ----------
+["i01","F","Inspección","Está dentro de límites, puede seguir.","It's within limits, good to go.","\"Good to go\" = listo, adelante.","",""],
+["i02","F","Inspección","Esto está fuera de límites.","This is out of limits.","","",""],
+["i04","F","Inspección","¿Le puedes echar un vistazo a esto?","Can you take a look at this?","Más natural que \"Can you check this?\".","",""],
+["i07","F","Inspección","Lo vuelvo a medir para asegurarme.","Let me measure it again, just to be sure.","","",""],
+["i11","F","Inspección","¿Quién firmó esto?","Who **signed** this?","","Pasado regular: sign → signed","past"],
+["i12","F","Inspección","Todavía no lo puedo firmar.","I **can't sign** it yet.","yet = todavía (en negativo).","can't + verbo","can"],
+["i13","F","Inspección","Todo correcto, lo firmo.","All good, I'**ll sign** it.","","Decisión ahora → will","will"],
+["i16","F","Inspección","El número de serie no coincide con el papeleo.","The serial number **doesn't match** the paperwork.","","it → doesn't + verbo","present"],
+["i17","F","Inspección","Primero una inspección visual.","Let's do a visual first.","En el taller se dice solo \"a visual\".","",""],
+["i19","F","Inspección","¿Cuál es el límite según el manual?","What's the limit per the manual?","","",""],
+["i21","F","Inspección","Esto es chatarra.","That's scrap.","","",""],
+["d03","F","Defectos","Veo una grieta aquí.","I can see a crack here.","","",""],
+["m01","F","Manual","Según el manual…","As per the manual…","","",""],
+["m06","F","Manual","Rellena la orden de trabajo.","Fill in the work order.","","",""],
+["m08","F","Manual","Si no está escrito, no se ha hecho.","If it's not written down, it didn't happen.","La regla de oro del taller.","",""],
+["m10","F","Manual","¿Qué par de apriete llevan estos?","What's the torque on these?","","",""],
+["m11","F","Manual","Hay que pedir la pieza.","We need to order the part.","","",""],
+["t01","F","Taller","¿Dónde está la dinamométrica?","Where's the torque wrench?","","",""],
+["t02","F","Taller","¿Me pasas eso?","Can you pass me that?","","",""],
+["t03","F","Taller","Dame un segundo.","Give me a sec.","","",""],
+["t05","F","Taller","Entendido.","Got it.","Corto y natural, vale para todo.","",""],
+["t06","F","Taller","Voy a ello.","I'm on it.","","",""],
+["t08","F","Taller","¿Para cuándo lo necesitas?","When do you need it by?","Ojo al \"by\" del final.","Fecha límite → by","ptiempo"],
+["t10","F","Taller","Ojo, todavía está caliente.","Heads up, it's still hot.","\"Heads up\" = aviso, ojo.","",""],
+["t11","F","Taller","Espera, espera.","Hold on, hold on.","","",""],
+["t13","F","Taller","Me falta una herramienta.","I'm missing a tool.","Esto para el trabajo hasta que aparezca.","",""],
+["t15","F","Taller","¿Qué queda pendiente?","What's still open?","","",""],
+["t17","F","Taller","Lo dejamos por hoy.","Let's call it a day.","","",""],
+["c01","F","Comunicar","Perdona, ¿me lo repites?","Sorry, say that again?","Mucho más natural que \"Can you repeat, please?\".","",""],
+["c02","F","Comunicar","¿Puedes hablar más despacio, por favor?","Can you slow down a bit, please?","","",""],
+["c03","F","Comunicar","A ver si lo he entendido bien…","Just to make sure I got it…","Y repites lo que has entendido.","",""],
+["c05","F","Comunicar","¿Cómo se dice esto en inglés?","What do you call this in English?","","",""],
+["c06","F","Comunicar","No estoy seguro, déjame comprobarlo.","I'm not sure, let me check.","","",""],
+["c07","F","Comunicar","Tiene sentido.","Makes sense.","","",""],
+["c08","F","Comunicar","Fallo mío.","My bad.","","",""],
+["c09","F","Comunicar","No pasa nada.","No worries.","","",""],
+["c13","F","Comunicar","¿Me lo enseñas?","Can you show me?","","",""],
+["c14","F","Comunicar","Recibido.","Copy that.","Viene de la radio; en aviación se usa mucho.","",""],
+["c15","F","Comunicar","Me parece bien.","Sounds good.","","",""],
+["s01","F","Café","¿Qué tal?","How's it going?","Respuesta típica: \"Not bad, you?\".","",""],
+["s03","F","Café","Soy nuevo, empecé esta semana.","I'm new, I **started** this week.","","Pasado regular → start + ed","past"],
+["s04","F","Café","Soy de España, me acabo de mudar.","I'm from Spain, I just **moved** here.","","Pasado regular → move + d","past"],
+["s05","F","Café","¿Cuánto tiempo llevas aquí?","How long have you been here?","Frase hecha: apréndela tal cual.","",""],
+["s07","F","Café","¿Vamos a por un café?","Wanna grab a coffee?","\"Wanna\" = want to, en hablado.","",""],
+["s09","F","Café","Hasta mañana.","See you tomorrow.","","",""],
+["s10","F","Café","Buen finde.","Have a good weekend.","","",""]
+];
+
+const TYPE = {W:"Palabra",P:"Preposición",V:"Verbo",F:"Frase"};
+const INSTR = {
+  W:"Di la palabra en inglés.",
+  P:"¿Qué preposición va en el hueco? Dila en voz alta.",
+  V:"Dilo en inglés. Fíjate en el verbo.",
+  F:"Dilo en voz alta en inglés."
+};
+function norm(r){
+  const t=r[1];
+  if(t==="W") return {id:r[0],t,cat:TYPE.W,q:r[2],a:r[3],note:r[4],hint:"Empieza por \""+r[3][0].toUpperCase()+"…\"",ref:""};
+  if(t==="P") return {id:r[0],t,cat:TYPE.P,q:r[2],qsub:r[3],a:r[4],note:"",hint:r[5],ref:"r-"+r[6]};
+  if(t==="V") return {id:r[0],t,cat:TYPE.V,q:r[2],a:r[3],note:r[4],hint:r[5],ref:r[6]?"r-"+r[6]:""};
+  return {id:r[0],t,cat:r[2],q:r[3],a:r[4],note:r[5],hint:r[6],ref:r[7]?"r-"+r[7]:""};
+}
+// Dificultad 1 (fácil), 2 (medio), 3 (difícil)
+const P_EASY = ["p01","p02","p03","p04","p18","p21","p22","p26","p33"];
+const V_LEVEL = {be:1,there:1,imp:1,present:2,cont:2,can:2,past:3,will:3,going:3,have:3,perfect:3};
+function levelOf(c){
+  if(c.id[0]==="x") return 3;
+  if(c.t==="W") return 1;
+  if(c.t==="P") return P_EASY.includes(c.id)?1:2;
+  if(c.t==="V"){ if(["v07","v08","v09"].includes(c.id))return 1; if(["v23","v24"].includes(c.id))return 2; return V_LEVEL[c.ref.slice(2)]||2 }
+  const n=plain(c.a).length; return n<20?1:n<34?2:3;
+}
+const CARDS = DECK.map(norm);
+CARDS.forEach(c=>c.lvl=levelOf(c));
+const BY_ID = Object.fromEntries(CARDS.map(c=>[c.id,c]));
+const GOAL = 10, NEW_MAX = 12;
+const LVL_NAME = {1:"FÁCIL",2:"MEDIO",3:"DIFÍCIL"};
+// 0–3 puntos: fácil · 4–6: medio · 7–9: difícil
+function tierFor(points){return points<4?1:points<7?2:3}
+const INTERVALS = [1,1,3,7,14,30];
+
+const $ = id => document.getElementById(id);
+function dayKey(d=new Date()){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return dayKey(d)}
+function plain(s){return s.replace(/\*\*/g,"")}
+function fillGaps(q,a){const parts=a.split(" … ");let i=0;return q.replace(/___/g,()=>parts[Math.min(i++,parts.length-1)])}
+function enText(c){return c.t==="P"?fillGaps(c.q,c.a):plain(c.a)}
+function esText(c){return c.t==="P"?c.qsub:c.q}
+// Pinta texto con **marcas** sin usar innerHTML
+function paint(el,s){el.textContent="";s.split("**").forEach((p,i)=>{if(!p)return;if(i%2){const m=document.createElement("mark");m.textContent=p;el.append(m)}else el.append(p)})}
+function paintGap(el,q){el.textContent="";q.split("___").forEach((p,i)=>{if(i){const g=document.createElement("span");g.className="gap";g.innerHTML="&nbsp;";el.append(g)}el.append(p)})}
+
+function fresh(){return {v:2,updated:0,cards:{},streak:0,lastDone:null,day:null}}
+let S = fresh();
+try{const raw=localStorage.getItem("canalla-v1"); if(raw) S=JSON.parse(raw)}catch(e){}
+
+let dbRef=null, saving=Promise.resolve();
+function save(){
+  S.updated=Date.now();
+  try{localStorage.setItem("canalla-v1",JSON.stringify(S))}catch(e){}
+  if(dbRef){const snap=JSON.stringify(S);
+    saving=saving.then(()=>dbRef.set({state:snap})).then(()=>{$("sync").textContent="Guardado en tu cuenta"}).catch(()=>{$("sync").textContent="Guardado solo en este dispositivo"})}
+}
+
+// Racha: si pasa un día entero sin completar, se pierde entera
+function checkStreak(){
+  if(S.streak>0&&S.lastDone&&S.lastDone<addDays(-1)){S.lost=S.streak;S.streak=0;save()}
+}
+function ensureDay(){
+  const today=dayKey();
+  checkStreak();
+  if(!S.day||S.day.date!==today||S.day.ver!==3){
+    const keep=S.day&&S.day.date===today?S.day:null;
+    S.day={date:today,points:keep?keep.points:0,log:keep?keep.log:[],extra:keep?keep.extra:false,cur:null,newCount:0,ver:3};
+    save();
+  }
+}
+// Elige la siguiente tarjeta según los puntos: primero repasos de ese nivel, luego nuevas, y variando el tipo
+function nextId(){
+  const d=S.day;
+  if(d.cur&&BY_ID[d.cur]) return d.cur;
+  const today=dayKey(), target=tierFor(d.points);
+  const recent=d.log.slice(-4).map(l=>l.id), okToday=new Set(d.log.filter(l=>l.ok).map(l=>l.id));
+  const lastType=d.log.length?BY_ID[d.log[d.log.length-1].id]?.t:null;
+  const free=c=>!recent.includes(c.id)&&!okToday.has(c.id);
+  const byVariety=list=>{const other=list.filter(c=>c.t!==lastType);return other.length?other:list};
+  let pick=null;
+  for(const lvl of [target,target-1,target+1,target-2,target+2].filter(l=>l>=1&&l<=3)){
+    const due=CARDS.filter(c=>c.lvl===lvl&&S.cards[c.id]&&S.cards[c.id].due<=today&&free(c))
+      .sort((a,b)=>S.cards[a.id].box-S.cards[b.id].box);
+    if(due.length){pick=byVariety(due)[0];break}
+    if(d.newCount<NEW_MAX){
+      const fresh=CARDS.filter(c=>c.lvl===lvl&&!S.cards[c.id]&&free(c));
+      if(fresh.length){pick=byVariety(fresh)[0];d.newCount++;break}
+    }
+  }
+  // Ya no quedan repasos ni nuevas: práctica extra con tarjetas vistas de ese nivel
+  if(!pick){
+    const pool=CARDS.filter(c=>c.lvl===target&&!recent.includes(c.id));
+    const any=pool.length?pool:CARDS.filter(c=>!recent.includes(c.id));
+    pick=any[Math.floor(Math.random()*any.length)];
+  }
+  d.cur=pick.id; save();
+  return d.cur;
+}
+
+function answer(ok){
+  const d=S.day, id=d.cur;
+  const c=S.cards[id]||(S.cards[id]={box:0,due:dayKey(),ok:0,fail:0});
+  if(ok){c.ok++;c.box=Math.min(c.box+1,INTERVALS.length-1);c.due=addDays(INTERVALS[c.box])}
+  else{c.fail++;c.box=0;c.due=addDays(1)}
+  d.log.push({id,ok});
+  d.points=Math.max(0,d.points+(ok?1:-1));
+  d.cur=null;
+  if(d.points>=GOAL&&!d.extra&&S.lastDone!==d.date){
+    S.streak=(S.lastDone===addDays(-1)?S.streak:0)+1;S.lastDone=d.date;S.lost=0;
+    S.best=Math.max(S.best||0,S.streak);
+  }
+  save(); render();
+}
+
+let tts=null, current=null;
+function render(){
+  ensureDay();
+  const d=S.day, closed=d.points>=GOAL&&!d.extra;
+  $("pts").textContent=Math.min(d.points,GOAL);
+  $("gauge").innerHTML=Array.from({length:GOAL},(_,i)=>`<i class="${i<d.points?"on":""}"></i>`).join("");
+  const st=S.streak||0, doneToday=S.lastDone===d.date;
+  $("streakN").textContent=st;
+  $("streakL").innerHTML=(st===1?"DÍA":"DÍAS")+"<br>SEGUIDOS";
+  const tier=tierFor(d.points);
+  [1,2,3].forEach(t=>$("t"+t).classList.toggle("now",!closed&&t===tier));
+  const msg=$("streakMsg");
+  if(doneToday){msg.className="streak-msg good";msg.textContent=`Hoy completado: llevas ${st} ${st===1?"día":"días"} seguidos.`+(S.best>st?` Tu récord: ${S.best}.`:"")}
+  else if(S.lost){msg.className="streak-msg lost";msg.textContent=`Perdiste tu racha de ${S.lost} ${S.lost===1?"día":"días"}. Completa hoy y empieza otra.`}
+  else if(st>0){msg.className="streak-msg warn";msg.textContent=`Llevas ${st} ${st===1?"día":"días"}. Si hoy no llegas a 10 puntos, mañana la racha vuelve a 0.`}
+  else{msg.className="streak-msg";msg.textContent="Llega a 10 puntos hoy y suma tu primer día de racha. Si te saltas un día, la racha vuelve a 0."}
+
+  $("play").hidden=closed; $("done").hidden=!closed;
+  if(closed){
+    const okN=d.log.filter(l=>l.ok).length, badN=new Set(d.log.filter(l=>!l.ok).map(l=>l.id)).size;
+    $("sOk").textContent=okN; $("sBad").textContent=badN;
+    $("sMaster").textContent=Object.entries(S.cards).filter(([id,c])=>BY_ID[id]&&c.box>=1).length;
+    $("doneText").textContent=`${d.log.length} tarjetas hoy. Las falladas vuelven mañana.`;
+  }else{
+    const c=current=BY_ID[nextId()], s=S.cards[c.id];
+    $("card").classList.remove("flipped");
+    document.querySelector(".back").setAttribute("aria-hidden","true");
+    document.querySelector(".front").removeAttribute("aria-hidden");
+    $("cat").textContent=$("cat2").textContent=c.t==="F"?"Frase · "+c.cat:c.cat;
+    $("status").textContent="NIVEL "+c.lvl+" · "+(!s?"NUEVA":s.box===0?"FALLADA":"REPASO");
+    // Anverso
+    const q=$("q"); q.classList.toggle("word",c.t==="W");
+    if(c.t==="P") paintGap(q,c.q); else q.textContent=c.q;
+    $("qsub").textContent=c.t==="P"?c.qsub:""; $("qsub").hidden=c.t!=="P";
+    $("instr").textContent=INSTR[c.t];
+    $("hintBox").hidden=true; $("hintBtn").hidden=!c.hint;
+    $("hintText").textContent=c.hint; $("hintRef").hidden=!c.ref;
+    // Reverso
+    const a=$("a"); a.classList.toggle("word",c.t==="W");
+    if(c.t==="P"){paint(a,"**"+c.a+"**")} else paint(a,c.t==="W"?"**"+c.a+"**":c.a);
+    $("asub").textContent=c.t==="P"?fillGaps(c.q,c.a):c.t==="W"?"":c.q; $("asub").hidden=c.t==="W";
+    $("note").textContent=c.note; $("note").hidden=!c.note;
+    const showRule=c.t!=="W"&&!!c.hint;
+    $("ruleBox").hidden=!showRule; $("ruleText").textContent=c.hint; $("ruleRef").hidden=!c.ref;
+  }
+  renderLists();
+}
+function fillList(ul,ids){
+  ul.textContent="";
+  ids.forEach(id=>{const c=BY_ID[id];const el=document.createElement("li");
+    const b=document.createElement("b");b.textContent=enText(c);const s=document.createElement("span");s.textContent=esText(c);
+    el.append(b,s);ul.append(el)});
+  if(!ids.length){const p=document.createElement("li");p.className="empty";p.textContent="Todavía nada.";ul.append(p)}
+}
+function renderLists(){
+  const entries=Object.entries(S.cards).filter(([id])=>BY_ID[id]);
+  const fail=entries.filter(([,c])=>c.box===0).map(([id])=>id);
+  const ok=entries.filter(([,c])=>c.box>=1).sort((a,b)=>b[1].box-a[1].box).map(([id])=>id);
+  $("nFail").textContent=fail.length; $("nOk").textContent=ok.length;
+  fillList($("lFail"),fail); fillList($("lOk"),ok);
+}
+
+// Chuleta
+function showTab(p){
+  $("tabV").setAttribute("aria-selected",p==="V"); $("tabP").setAttribute("aria-selected",p==="P");
+  $("paneV").hidden=p!=="V"; $("paneP").hidden=p!=="P";
+}
+function openSheet(ref){
+  $("sheet").hidden=false; document.body.style.overflow="hidden";
+  const target=ref&&document.getElementById(ref);
+  showTab(target&&target.closest("#paneP")?"P":"V");
+  if(target){requestAnimationFrame(()=>{target.scrollIntoView({block:"start"});target.classList.add("flash");setTimeout(()=>target.classList.remove("flash"),1500)})}
+  else $("sheet").scrollTop=0;
+  $("closeSheet").focus({preventScroll:true});
+}
+function closeSheet(){$("sheet").hidden=true;document.body.style.overflow=""}
+$("openSheet").onclick=()=>openSheet("");
+$("closeSheet").onclick=closeSheet;
+$("tabV").onclick=()=>{showTab("V");$("sheet").scrollTop=0};
+$("tabP").onclick=()=>{showTab("P");$("sheet").scrollTop=0};
+$("hintRef").onclick=$("ruleRef").onclick=()=>openSheet(current&&current.ref);
+
+$("hintBtn").onclick=()=>{$("hintBox").hidden=false;$("hintBtn").hidden=true};
+$("flip").onclick=()=>{$("card").classList.add("flipped");
+  document.querySelector(".front").setAttribute("aria-hidden","true");
+  document.querySelector(".back").removeAttribute("aria-hidden"); $("ok").focus({preventScroll:true})};
+$("ok").onclick=()=>answer(true);
+$("bad").onclick=()=>answer(false);
+$("extra").onclick=()=>{const d=S.day;d.extra=true;d.points=0;d.cur=null;d.newCount=Math.min(d.newCount,NEW_MAX-6);save();render()};
+$("speak").onclick=()=>{
+  if(!current)return;
+  if(tts){tts.speak(enText(current),{language:"en",rate:.9}).catch(()=>{});return}
+  if("speechSynthesis" in window){
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(enText(current));u.lang="en-GB";u.rate=.9;
+    const v=speechSynthesis.getVoices().find(v=>/^en[-_]GB/i.test(v.lang))||speechSynthesis.getVoices().find(v=>/^en/i.test(v.lang));
+    if(v)u.voice=v;
+    speechSynthesis.speak(u);
+  }
+};
+
+// Versión pública (PWA): botón para instalar y voz del propio móvil
+if(window.CANALLA_PWA){
+  const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+  let deferred=null;
+  if(!standalone){
+    $("installRow").hidden=false;
+    addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e});
+    addEventListener("appinstalled",()=>{$("installRow").hidden=true});
+    $("install").onclick=async()=>{
+      if(deferred){deferred.prompt();const r=await deferred.userChoice.catch(()=>null);deferred=null;if(r&&r.outcome==="accepted")$("installRow").hidden=true}
+      else $("installHelp").hidden=!$("installHelp").hidden;
+    };
+  }
+  if("speechSynthesis" in window) $("speak").hidden=false;
+}
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&!$("sheet").hidden){closeSheet();return}
+  if(e.target.tagName==="BUTTON"&&(e.key===" "||e.key==="Enter"))return;
+  if(e.key===" "&&$("sheet").hidden&&!$("card").classList.contains("flipped")){e.preventDefault();$("flip").click()}
+});
+
+render();
+
+// Capacidades: progreso en tu cuenta (móvil y PC iguales) y voz en inglés
+(async()=>{
+  if(!window.claude?.use) return;
+  try{tts=await claude.use("tts"); if(tts) $("speak").hidden=false}catch(e){}
+  try{
+    const [db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
+    if(!db||!user) return;
+    const uid=await user.id(); if(!uid) return;
+    const ref=db.collection("data/users/"+uid).doc("progreso");
+    const timer=setTimeout(()=>{$("sync").textContent="Guardado solo en este dispositivo"},10000);
+    const snap=await ref.get(); clearTimeout(timer);
+    dbRef=ref;
+    if(snap.exists){
+      const remote=JSON.parse(snap.data().state||"null");
+      if(remote&&remote.updated>(S.updated||0)){S=remote;try{localStorage.setItem("canalla-v1",JSON.stringify(S))}catch(e){}render()}
+      else if(S.updated) save();
+    }else if(S.updated) save();
+    $("sync").textContent="Guardado en tu cuenta";
+  }catch(e){$("sync").textContent="Guardado solo en este dispositivo"}
+})();
+</script>
