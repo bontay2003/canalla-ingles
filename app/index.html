@@ -1,0 +1,385 @@
+<title>Canalla Inglés</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: una sola columna tipo "tarjeta de inspección", contador de 10 puntos arriba, listas plegadas abajo */
+:root{
+  --bg:#ECEFF1; --surface:#FFFFFF; --ink:#16212B; --muted:#5B6B78; --line:#CBD3D9;
+  --accent:#D99A00; --ok:#1E7A4C; --ok-bg:#E3F2EA; --bad:#B42318; --bad-bg:#FBE7E5;
+  --display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F161C; --surface:#18222B; --ink:#E6ECF0; --muted:#93A3AF; --line:#2C3A45;
+  --accent:#F0B429; --ok:#4CC38A; --ok-bg:#12301F; --bad:#F2766B; --bad-bg:#3A1714; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F161C; --surface:#18222B; --ink:#E6ECF0; --muted:#93A3AF; --line:#2C3A45;
+  --accent:#F0B429; --ok:#4CC38A; --ok-bg:#12301F; --bad:#F2766B; --bad-bg:#3A1714; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45}
+.wrap{max-width:520px;margin:0 auto;padding-block:20px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:18px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:700;font-size:1.5rem;margin:0;letter-spacing:.01em}
+.meta{font-family:var(--mono);font-size:.75rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.gauge{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.gauge i{height:10px;border-radius:2px;background:var(--line);transition:background .2s}
+.gauge i.on{background:var(--accent)}
+.gauge-row{display:flex;flex-direction:column;gap:6px}
+.gauge-label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.gauge-label b{color:var(--ink)}
+
+.card{position:relative;perspective:1200px;min-height:300px}
+.face{position:absolute;inset:0;background:var(--surface);border:1px solid var(--line);border-radius:6px;
+  padding:22px 20px 20px;display:flex;flex-direction:column;gap:14px;backface-visibility:hidden;
+  transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+.face::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;border-radius:6px 0 0 6px;background:var(--accent)}
+.back{transform:rotateY(180deg)}
+.card.flipped .front{transform:rotateY(-180deg)}
+.card.flipped .back{transform:rotateY(0)}
+@media (prefers-reduced-motion:reduce){.face{transition:none}}
+.tagline{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.cat{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  border:1px solid var(--line);padding:2px 8px;border-radius:3px}
+.status{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.es{font-family:var(--display);font-weight:600;font-size:1.55rem;line-height:1.2;margin:0;text-wrap:balance}
+.hint{color:var(--muted);font-size:.9rem;margin:0}
+.en{font-family:var(--display);font-weight:700;font-size:1.7rem;line-height:1.15;margin:0;text-wrap:balance}
+.note{color:var(--muted);font-size:.92rem;margin:0}
+.es-small{font-size:.85rem;color:var(--muted);margin:0}
+.spacer{flex:1}
+button{font:inherit;cursor:pointer;border-radius:5px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:12px 14px}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600;font-size:1.05rem;padding:14px}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-ok,.btn-bad{display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:600;font-size:1.05rem;padding:12px 8px}
+.btn-ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.btn-bad{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.btn-ok small,.btn-bad small{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;font-weight:500}
+.speak{align-self:flex-start;font-size:.85rem;padding:6px 12px;font-family:var(--mono)}
+
+.done{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:24px 20px;display:flex;flex-direction:column;gap:12px}
+.stamp{align-self:flex-start;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--ok);
+  border:2px solid var(--ok);padding:4px 10px;border-radius:3px;transform:rotate(-3deg)}
+.done h2{font-family:var(--display);margin:0;font-size:1.4rem}
+.done p{margin:0;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stats div{border:1px solid var(--line);border-radius:4px;padding:10px;text-align:center}
+.stats b{display:block;font-family:var(--display);font-size:1.5rem;font-variant-numeric:tabular-nums}
+.stats span{font-size:.75rem;color:var(--muted)}
+
+details{background:var(--surface);border:1px solid var(--line);border-radius:6px}
+summary{padding:12px 16px;cursor:pointer;font-weight:600;display:flex;justify-content:space-between;gap:8px}
+summary span{font-family:var(--mono);color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
+details ul{list-style:none;margin:0;padding:0 16px 12px;display:flex;flex-direction:column}
+details li{padding:8px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:1px;min-width:0}
+details li b{font-weight:600}
+details li span{color:var(--muted);font-size:.88rem}
+.empty{color:var(--muted);font-size:.9rem;padding:4px 16px 14px}
+.sync{font-family:var(--mono);font-size:.7rem;color:var(--muted);text-align:center}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Canalla Inglés</h1>
+    <span class="meta" id="streak">Racha: 0 días</span>
+  </header>
+
+  <div class="gauge-row">
+    <div class="gauge-label"><span>Puntos de hoy</span><span><b id="pts">0</b> / 10</span></div>
+    <div class="gauge" id="gauge"></div>
+  </div>
+
+  <section id="play">
+    <div class="card" id="card">
+      <div class="face front">
+        <div class="tagline"><span class="cat" id="cat"></span><span class="status" id="status"></span></div>
+        <p class="es" id="es"></p>
+        <p class="hint">Dilo en voz alta en inglés. Luego gira la tarjeta.</p>
+        <div class="spacer"></div>
+        <button class="primary" id="flip">Girar tarjeta</button>
+      </div>
+      <div class="face back" aria-hidden="true">
+        <div class="tagline"><span class="cat" id="cat2"></span><button class="speak" id="speak" hidden>▶ Escuchar</button></div>
+        <p class="en" id="en"></p>
+        <p class="note" id="note"></p>
+        <p class="es-small" id="es2"></p>
+        <div class="spacer"></div>
+        <div class="answers">
+          <button class="btn-bad" id="bad">Fallé −1<small>REJECT</small></button>
+          <button class="btn-ok" id="ok">La clavé +1<small>SERVICEABLE</small></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="done" id="done" hidden>
+    <span class="stamp">SIGNED OFF</span>
+    <h2>Día cerrado. Buen trabajo.</h2>
+    <p id="doneText"></p>
+    <div class="stats">
+      <div><b id="sOk">0</b><span>Bien hoy</span></div>
+      <div><b id="sBad">0</b><span>Para mañana</span></div>
+      <div><b id="sMaster">0</b><span>Dominadas</span></div>
+    </div>
+    <button id="extra">Una ronda extra (opcional)</button>
+  </section>
+
+  <details id="dFail">
+    <summary>Repaso de mañana <span id="nFail">0</span></summary>
+    <ul id="lFail"></ul>
+  </details>
+  <details id="dOk">
+    <summary>Acertadas <span id="nOk">0</span></summary>
+    <ul id="lOk"></ul>
+  </details>
+  <p class="sync" id="sync">Guardado en este dispositivo</p>
+</div>
+
+<script>
+// [id, categoría, español, inglés, nota]
+const DECK = [
+["i01","Inspección","Está dentro de límites, puede seguir.","It's within limits, good to go.","\"Good to go\" = listo, adelante. Lo oirás todo el día."],
+["i02","Inspección","Esto está fuera de límites.","This is out of limits.","También: \"It's out of tolerance\"."],
+["i03","Inspección","Esta pieza no pasa. La rechazo.","This part's a reject. I'm not passing it.","\"Pass / reject\" son los verbos del día a día del inspector."],
+["i04","Inspección","¿Le puedes echar un vistazo a esto?","Can you take a look at this?","Más natural que \"Can you check this?\"."],
+["i05","Inspección","Necesito que alguien más lo mire.","I need a second pair of eyes on this.","Frase típica para pedir una segunda opinión."],
+["i06","Inspección","Vamos a meterle el boroscopio.","Let's get a borescope on it.","Pronuncia \"BOR-uh-scope\"."],
+["i07","Inspección","Lo vuelvo a medir para asegurarme.","Let me re-measure it, just to be sure.","\"Just to be sure\" suaviza: no estás desconfiando de nadie."],
+["i08","Inspección","Está justo en el límite.","It's right on the limit. Borderline.","\"Borderline\" = en el filo."],
+["i09","Inspección","Lo dejo en cuarentena hasta que lo vea ingeniería.","I'm quarantining it till engineering has a look.","\"Till\" es la forma hablada de \"until\"."],
+["i10","Inspección","Abre una tarjeta no rutinaria para esto.","Raise an NRC for this.","NRC = Non-Routine Card. \"Raise\" = abrir (una tarjeta, un informe)."],
+["i11","Inspección","¿Quién firmó esto?","Who signed this off?","\"Sign off\" = firmar y dar por bueno."],
+["i12","Inspección","Todavía no lo puedo firmar.","I can't sign it off yet.","Dilo tranquilo y explica qué falta."],
+["i13","Inspección","Todo correcto, lo firmo.","All good, I'll sign it off.",""],
+["i14","Inspección","Necesito la trazabilidad de esta pieza.","I need the traceability on this part.","Pronuncia \"tray-suh-BIL-ity\"."],
+["i15","Inspección","¿Viene con su Form 1?","Has it got a Form 1?","EASA Form 1: el certificado de aptitud de la pieza."],
+["i16","Inspección","El número de serie no coincide con el papeleo.","The serial number doesn't match the paperwork.","\"Paperwork\" se usa para toda la documentación."],
+["i17","Inspección","Primero una inspección visual.","Let's do a visual first.","En el taller se dice solo \"a visual\"."],
+["i18","Inspección","Hay que pasarle líquidos penetrantes.","It needs a dye pen check.","\"Dye pen\" o \"FPI\" (Fluorescent Penetrant Inspection)."],
+["i19","Inspección","¿Cuál es el límite según el manual?","What's the limit per the manual?","\"Per the manual\" = según el manual."],
+["i20","Inspección","Se puede reparar dentro de los límites del manual.","It's repairable within manual limits.",""],
+["i21","Inspección","Esto es chatarra.","That's scrap. Scrap it.","\"Scrap\" vale como nombre y como verbo."],
+["i22","Inspección","Ponle etiqueta roja, que nadie la toque.","Red-tag it. Nobody touches it.","U/S = unserviceable, \"you-ess\"."],
+["d01","Defectos","Hay una mella en el borde de ataque.","There's a nick on the leading edge.","Nick = mella pequeña. Leading / trailing edge = borde de ataque / salida."],
+["d02","Defectos","Tiene una abolladura.","It's got a dent.","\"It's got\" es más hablado que \"it has\"."],
+["d03","Defectos","Veo una grieta aquí.","I can see a crack here.",""],
+["d04","Defectos","Hay corrosión debajo de la pintura.","There's corrosion under the paint.","Pronuncia \"kuh-ROH-zhun\"."],
+["d05","Defectos","Esta zona está desgastada.","This area's worn.","Worn se pronuncia como \"warn\"."],
+["d06","Defectos","Tiene una rebaba, hay que quitarla.","There's a burr on it, it needs deburring.",""],
+["d07","Defectos","Está rayado por el roce.","It's scored.","Scoring = rayas por fricción. Un scratch es un arañazo superficial."],
+["d08","Defectos","Parece daño por objeto extraño.","Looks like FOD damage.","FOD se dice como una palabra: \"fod\"."],
+["d09","Defectos","Está decolorado, parece que se calentó.","It's discolored, looks like it overheated.",""],
+["d10","Defectos","Está picado.","It's pitted.","Pitting = picaduras de corrosión."],
+["d11","Defectos","La rosca está pasada.","The thread's stripped.","Stripped = la rosca ya no agarra."],
+["d12","Defectos","Falta el alambre de frenado.","The lockwire's missing.","También \"safety wire\"."],
+["d13","Defectos","Está suelto.","It's loose.","Pronuncia \"loos\", con s sorda."],
+["d14","Defectos","Está doblado.","It's bent out of shape.",""],
+["d15","Defectos","Pierde aceite.","It's leaking oil.",""],
+["d16","Defectos","Los álabes tienen erosión.","The blades are eroded.","Blade = álabe. Vane = álabe fijo (estator)."],
+["d17","Defectos","Se está desprendiendo el recubrimiento.","The coating's flaking off.",""],
+["d18","Defectos","Es solo suciedad, no es un defecto.","It's just dirt, not a defect.",""],
+["m01","Manual","Según el manual…","As per the manual…","Muy usado en el taller y en los correos."],
+["m02","Manual","¿Qué revisión del manual estás usando?","Which revision of the manual are you on?","\"Are you on\" = estás usando."],
+["m03","Manual","Está en el CMM, capítulo 72.","It's in the CMM, chapter seventy-two.","CMM = Component Maintenance Manual. ATA 72 = motor."],
+["m04","Manual","Hay un boletín de servicio para esto.","There's an SB out for this.","SB = Service Bulletin. Se dice \"ess-bee\"."],
+["m05","Manual","¿Está hecha la directiva de aeronavegabilidad?","Has the AD been done?","AD = Airworthiness Directive. Es obligatoria."],
+["m06","Manual","Rellena la orden de trabajo.","Fill in the work order.",""],
+["m07","Manual","Asegúrate de documentarlo.","Make sure you write it up.","\"Write up\" = dejarlo por escrito."],
+["m08","Manual","Si no está escrito, no se ha hecho.","If it's not written down, it didn't happen.","La regla de oro del taller."],
+["m09","Manual","Apriétalo al par de la tabla.","Torque it to the value in the table.",""],
+["m10","Manual","¿Qué par llevan estos?","What's the torque on these?","Torque se pronuncia \"tork\"."],
+["m11","Manual","Hay que pedir la pieza.","We need to order the part.",""],
+["m12","Manual","Es un AOG, lo necesitamos ya.","It's AOG, we need it ASAP.","AOG = Aircraft On Ground. Máxima prioridad. ASAP se dice \"ay-sap\" o letra a letra."],
+["t01","Taller","¿Dónde está la dinamométrica?","Where's the torque wrench?",""],
+["t02","Taller","¿Me pasas eso?","Can you pass me that?",""],
+["t03","Taller","Dame un segundo.","Give me a sec.",""],
+["t04","Taller","Ya casi está.","Nearly done. Almost there.",""],
+["t05","Taller","Entendido.","Got it.","Corto, natural, vale para todo."],
+["t06","Taller","Voy a ello.","I'm on it.",""],
+["t07","Taller","Esto corre prisa.","This one's a priority.","También oirás \"hot job\"."],
+["t08","Taller","¿Para cuándo lo necesitas?","When do you need it by?","Ojo al \"by\" al final."],
+["t09","Taller","Te lo tengo para después de comer.","I'll have it for you after lunch.",""],
+["t10","Taller","Ojo, todavía está caliente.","Heads up, it's still hot.","\"Heads up\" = aviso, ojo."],
+["t11","Taller","Espera, espera.","Hold on, hold on.",""],
+["t12","Taller","¿Has hecho el control de herramientas?","Have you done the tool check?","El control de herramientas evita FOD."],
+["t13","Taller","Me falta una herramienta.","I'm missing a tool.","Esto para el trabajo hasta que aparezca."],
+["t14","Taller","Vamos a hacer el relevo.","Let's do the handover.","Handover = relevo de turno."],
+["t15","Taller","¿Qué queda pendiente?","What's still open?","También \"What's outstanding?\"."],
+["t16","Taller","Lo paso al siguiente turno.","I'll hand it over to the next shift.",""],
+["t17","Taller","Lo dejamos por hoy.","Let's call it a day.",""],
+["t18","Taller","No me toca decidirlo, pregúntale al jefe de equipo.","That's not my call, check with the team lead.","\"My call\" = mi decisión."],
+["t19","Taller","No tengo autorización para firmar eso.","I'm not authorized to sign for that.",""],
+["t20","Taller","Más vale prevenir que curar.","Better safe than sorry.",""],
+["c01","Comunicar","Perdona, ¿me lo repites?","Sorry, say that again?","Mucho más natural que \"Can you repeat, please?\"."],
+["c02","Comunicar","¿Puedes ir un poco más despacio? Todavía me estoy adaptando.","Could you slow down a bit? I'm still getting used to it.",""],
+["c03","Comunicar","A ver si lo he entendido bien…","Just to make sure I got it…","Y repites lo que has entendido."],
+["c04","Comunicar","¿Qué quieres decir con eso?","What do you mean by that?",""],
+["c05","Comunicar","¿Cómo se llama esto en inglés?","What do you call this in English?",""],
+["c06","Comunicar","No estoy seguro, déjame comprobarlo.","Not sure, let me check.",""],
+["c07","Comunicar","Tiene sentido.","Makes sense.",""],
+["c08","Comunicar","Fallo mío.","My bad.",""],
+["c09","Comunicar","No pasa nada.","No worries.",""],
+["c10","Comunicar","Exacto.","Spot on.","\"Exactly\" también vale."],
+["c11","Comunicar","Ni idea.","No idea. Beats me.","\"Beats me\" es más coloquial."],
+["c12","Comunicar","Te digo algo.","I'll get back to you on that.",""],
+["c13","Comunicar","¿Me lo enseñas?","Can you show me?",""],
+["c14","Comunicar","Recibido.","Copy that.","Viene de la radio y en aviación se usa mucho."],
+["c15","Comunicar","Me parece bien.","Sounds good.",""],
+["c16","Comunicar","¿Me lo puedes apuntar?","Can you write it down for me?",""],
+["s01","Café","¿Qué tal?","How's it going?","Respuesta típica: \"Not bad, you?\"."],
+["s02","Café","¿Qué tal el finde?","How was your weekend?",""],
+["s03","Café","Soy nuevo, empecé esta semana.","I'm new, I started this week.",""],
+["s04","Café","Soy de España, me acabo de mudar.","I'm from Spain, just moved here.",""],
+["s05","Café","¿Cuánto llevas aquí?","How long have you been here?",""],
+["s06","Café","Antes trabajaba en…","I used to work at…",""],
+["s07","Café","¿Vamos a por un café?","Wanna grab a coffee?","\"Wanna\" = want to, en hablado."],
+["s08","Café","Vaya día más largo, ¿eh?","Long day, huh?",""],
+["s09","Café","Hasta mañana.","See you tomorrow. See ya.",""],
+["s10","Café","Buen finde.","Have a good weekend.",""],
+["s11","Café","¿Algún sitio bueno para comer por aquí?","Any good places to eat around here?",""],
+["s12","Café","Todavía me estoy situando.","Still finding my feet.","Expresión hecha: adaptarse a algo nuevo."]
+];
+const BY_ID = Object.fromEntries(DECK.map(c=>[c[0],c]));
+const GOAL = 10, NEW_PER_DAY = 7;
+const INTERVALS = [1,1,3,7,14,30]; // días hasta el próximo repaso según la caja
+
+const $ = id => document.getElementById(id);
+function dayKey(d=new Date()){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return dayKey(d)}
+
+function fresh(){return {v:1,updated:0,cards:{},streak:0,lastDone:null,day:null}}
+let S = fresh();
+try{const raw=localStorage.getItem("canalla-v1"); if(raw) S=JSON.parse(raw)}catch(e){}
+
+let dbRef=null, saving=Promise.resolve();
+function save(){
+  S.updated=Date.now();
+  try{localStorage.setItem("canalla-v1",JSON.stringify(S))}catch(e){}
+  if(dbRef){const snap=JSON.parse(JSON.stringify(S));
+    saving=saving.then(()=>dbRef.set({state:JSON.stringify(snap)})).then(()=>{$("sync").textContent="Guardado en tu cuenta"}).catch(()=>{$("sync").textContent="Guardado solo en este dispositivo"})}
+}
+
+function buildQueue(){
+  const today=dayKey();
+  const due=Object.entries(S.cards).filter(([id,c])=>BY_ID[id]&&c.due<=today)
+    .sort((a,b)=>a[1].box-b[1].box||a[1].due.localeCompare(b[1].due)).map(([id])=>id);
+  const unseen=DECK.map(c=>c[0]).filter(id=>!S.cards[id]);
+  return due.concat(unseen.slice(0,NEW_PER_DAY));
+}
+function ensureDay(){
+  const today=dayKey();
+  if(!S.day||S.day.date!==today){S.day={date:today,points:0,queue:buildQueue(),idx:0,log:[],extra:false};save()}
+}
+function nextId(){
+  const d=S.day;
+  if(d.idx>=d.queue.length){
+    // Se acabó la cola sin llegar a 10: más tarjetas nuevas, y si no quedan, repetir las falladas de hoy
+    const unseen=DECK.map(c=>c[0]).filter(id=>!S.cards[id]&&!d.queue.includes(id));
+    let more=unseen.slice(0,5);
+    if(!more.length) more=[...new Set(d.log.filter(l=>!l.ok).map(l=>l.id))];
+    if(!more.length) more=DECK.map(c=>c[0]).sort(()=>Math.random()-.5).slice(0,5);
+    d.queue.push(...more);
+  }
+  return d.queue[d.idx];
+}
+
+function answer(ok){
+  const d=S.day, id=d.queue[d.idx];
+  const c=S.cards[id]||(S.cards[id]={box:0,due:dayKey(),ok:0,fail:0});
+  if(ok){c.ok++;c.box=Math.min(c.box+1,INTERVALS.length-1);c.due=addDays(INTERVALS[c.box])}
+  else{c.fail++;c.box=0;c.due=addDays(1)}
+  d.log.push({id,ok});
+  d.points=Math.max(0,d.points+(ok?1:-1));
+  d.idx++;
+  if(d.points>=GOAL&&!d.extra){
+    const y=addDays(-1);
+    if(S.lastDone!==d.date){S.streak=(S.lastDone===y?S.streak:0)+1;S.lastDone=d.date}
+  }
+  save(); render();
+}
+
+let tts=null;
+function render(){
+  ensureDay();
+  const d=S.day, closed=d.points>=GOAL&&!d.extra;
+  $("pts").textContent=Math.min(d.points,GOAL);
+  $("gauge").innerHTML=Array.from({length:GOAL},(_,i)=>`<i class="${i<d.points?"on":""}"></i>`).join("");
+  const alive=S.lastDone===d.date||S.lastDone===addDays(-1);
+  $("streak").textContent="Racha: "+(alive?S.streak:0)+(S.streak===1&&alive?" día":" días");
+
+  $("play").hidden=closed; $("done").hidden=!closed;
+  if(closed){
+    const okN=d.log.filter(l=>l.ok).length, badN=new Set(d.log.filter(l=>!l.ok).map(l=>l.id)).size;
+    $("sOk").textContent=okN; $("sBad").textContent=badN;
+    $("sMaster").textContent=Object.values(S.cards).filter(c=>c.box>=1).length;
+    $("doneText").textContent=`${d.log.length} tarjetas hoy. Las falladas vuelven mañana.`;
+  }else{
+    const id=nextId(), c=BY_ID[id], st=S.cards[id];
+    $("card").classList.remove("flipped");
+    document.querySelector(".back").setAttribute("aria-hidden","true");
+    document.querySelector(".front").removeAttribute("aria-hidden");
+    $("cat").textContent=$("cat2").textContent=c[1];
+    $("status").textContent=!st?"NUEVA":st.box===0?"REPASO · FALLADA":"REPASO";
+    $("es").textContent=c[2]; $("es2").textContent=c[2];
+    $("en").textContent=c[3]; $("note").textContent=c[4]; $("note").hidden=!c[4];
+  }
+  renderLists();
+}
+function li(id){const c=BY_ID[id];return `<li><b></b><span></span></li>`}
+function fillList(ul,ids){
+  ul.innerHTML="";
+  ids.forEach(id=>{const c=BY_ID[id];const el=document.createElement("li");
+    const b=document.createElement("b");b.textContent=c[3];const s=document.createElement("span");s.textContent=c[2];
+    el.append(b,s);ul.append(el)});
+  if(!ids.length){const p=document.createElement("li");p.className="empty";p.style.border="0";p.textContent="Todavía nada.";ul.append(p)}
+}
+function renderLists(){
+  const entries=Object.entries(S.cards).filter(([id])=>BY_ID[id]);
+  const fail=entries.filter(([,c])=>c.box===0).map(([id])=>id);
+  const ok=entries.filter(([,c])=>c.box>=1).sort((a,b)=>b[1].box-a[1].box).map(([id])=>id);
+  $("nFail").textContent=fail.length; $("nOk").textContent=ok.length;
+  fillList($("lFail"),fail); fillList($("lOk"),ok);
+}
+
+$("flip").onclick=()=>{$("card").classList.add("flipped");
+  document.querySelector(".front").setAttribute("aria-hidden","true");
+  document.querySelector(".back").removeAttribute("aria-hidden"); $("ok").focus({preventScroll:true})};
+$("ok").onclick=()=>answer(true);
+$("bad").onclick=()=>answer(false);
+$("extra").onclick=()=>{S.day.extra=true;S.day.points=0;S.day.queue.push(...buildQueue().filter(id=>!S.day.queue.slice(S.day.idx).includes(id)));save();render()};
+$("speak").onclick=()=>{if(!tts)return;const id=S.day.queue[S.day.idx];tts.speak(BY_ID[id][3],{language:"en",rate:.95}).catch(()=>{})};
+document.addEventListener("keydown",e=>{
+  if(e.target.tagName==="BUTTON"&&(e.key===" "||e.key==="Enter"))return;
+  if(e.key===" "&&!$("card").classList.contains("flipped")){e.preventDefault();$("flip").click()}
+});
+
+render();
+
+// Capacidades: guardar progreso en la cuenta (sincroniza móvil y PC) y voz en inglés
+(async()=>{
+  if(!window.claude?.use) return;
+  try{
+    tts=await claude.use("tts");
+    if(tts) $("speak").hidden=false;
+  }catch(e){}
+  try{
+    const [db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
+    if(!db||!user) return;
+    const uid=await user.id(); if(!uid) return;
+    const ref=db.collection("data/users/"+uid).doc("progreso");
+    const timer=setTimeout(()=>{$("sync").textContent="Guardado solo en este dispositivo"},10000);
+    const snap=await ref.get(); clearTimeout(timer);
+    dbRef=ref;
+    if(snap.exists){
+      const remote=JSON.parse(snap.data().state||"null");
+      if(remote&&remote.updated>(S.updated||0)){S=remote;try{localStorage.setItem("canalla-v1",JSON.stringify(S))}catch(e){}render()}
+      else if(S.updated) save();
+    }else if(S.updated) save();
+    $("sync").textContent="Guardado en tu cuenta";
+  }catch(e){$("sync").textContent="Guardado solo en este dispositivo"}
+})();
+</script>
