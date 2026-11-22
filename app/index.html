@@ -32,6 +32,17 @@ h1{font-family:var(--display);font-weight:700;font-size:1.5rem;margin:0;letter-s
 .gauge-row{display:flex;flex-direction:column;gap:6px}
 .gauge-label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .gauge-label b{color:var(--ink)}
+.tiers{display:grid;grid-template-columns:4fr 3fr 3fr;gap:4px;font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;color:var(--muted)}
+.tiers span{border-top:1px solid var(--line);padding-top:3px}
+.tiers span.now{color:var(--ink);border-top:2px solid var(--accent);font-weight:600}
+.streak{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:4px 10px 4px 6px}
+.streak b{font-family:var(--display);font-size:1.25rem;font-variant-numeric:tabular-nums;min-width:1.6em;text-align:center;
+  background:var(--accent);color:#16212B;border-radius:3px;padding:0 4px;line-height:1.35}
+.streak span{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;color:var(--muted);line-height:1.2}
+.streak-msg{margin:0;font-size:.88rem;padding:8px 12px;border-radius:4px;border:1px solid var(--line);background:var(--surface)}
+.streak-msg.warn{border-color:var(--accent);background:var(--accent-bg)}
+.streak-msg.lost{border-color:var(--bad);background:var(--bad-bg);color:var(--bad)}
+.streak-msg.good{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
 
 .card{display:grid;perspective:1200px}
 .face{grid-area:1/1;position:relative;background:var(--surface);border:1px solid var(--line);border-radius:6px;min-height:320px;
@@ -122,7 +133,7 @@ td:first-child{font-weight:600;white-space:nowrap}
   <header>
     <h1>Canalla Inglés</h1>
     <div class="head-right">
-      <span class="meta" id="streak">Racha: 0 días</span>
+      <div class="streak" title="Días seguidos completados"><b id="streakN">0</b><span id="streakL">DÍAS<br>SEGUIDOS</span></div>
       <button class="small-btn" id="openSheet">Chuleta</button>
     </div>
   </header>
@@ -130,7 +141,9 @@ td:first-child{font-weight:600;white-space:nowrap}
   <div class="gauge-row">
     <div class="gauge-label"><span>Puntos de hoy</span><span><b id="pts">0</b> / 10</span></div>
     <div class="gauge" id="gauge"></div>
+    <div class="tiers"><span id="t1">FÁCIL</span><span id="t2">MEDIO</span><span id="t3">DIFÍCIL</span></div>
   </div>
+  <p class="streak-msg" id="streakMsg"></p>
 
   <section id="play">
     <div class="card" id="card">
@@ -232,6 +245,7 @@ td:first-child{font-weight:600;white-space:nowrap}
       <p><b>am / is / are + verbo-ing</b></p>
       <p>I'm checking · she's cleaning · they're waiting</p>
       <p class="use">Negativo: I'm not working · Pregunta: Are you working?</p>
+      <p>En pasado (lo que estabas haciendo): <b>was / were + verbo-ing</b> · I was measuring it when you called.</p>
     </section>
 
     <section class="sec" id="r-past">
@@ -279,6 +293,15 @@ td:first-child{font-weight:600;white-space:nowrap}
       <h3>Can / can't: poder, saber hacer</h3>
       <p><b>can + verbo</b>, igual para todos. Nunca "cans" ni "can to".</p>
       <p>I can do it · he can't sign it · Can you help me?</p>
+      <p class="use">Pasado: <b>could / couldn't</b> · I couldn't sign it.</p>
+      <p><b>should + verbo</b> = debería · You should ask the inspector.</p>
+    </section>
+
+    <section class="sec" id="r-perfect">
+      <h3>Ya / todavía no / alguna vez: have + participio</h3>
+      <p><b>I've / you've / we've</b> + participio · <b>she's / he's</b> + participio</p>
+      <p>I've finished · I've checked it twice · I haven't seen it yet · Have you finished?</p>
+      <p class="use">Regulares: participio = -ed (checked). Irregulares útiles: see → seen, do → done, find → found, break → broken.</p>
     </section>
 
     <section class="sec" id="r-have">
@@ -470,6 +493,23 @@ const DECK = [
 ["v37","V","Mira esto.","**Look** at this.","look at = mirar algo.","Orden: el verbo solo","imp"],
 ["v38","V","Hay una grieta.","**There's** a crack.","","Hay (una) → there is","there"],
 ["v39","V","Hay dos grietas.","**There are** two cracks.","","Hay (varias) → there are","there"],
+// ---------- Nivel 3: frases un poco más largas, todavía básicas ----------
+["x01","V","Ayer encontré una grieta y se lo dije a mi jefe.","Yesterday I **found** a crack and I **told** my boss.","","Pasado irregular: find → found, tell → told","past"],
+["x02","V","No pude firmarlo porque faltaba el papeleo.","I **couldn't sign** it because the paperwork **was** missing.","","Pasado de can → could / couldn't","can"],
+["x03","V","Mañana voy a revisar el motor con Marco.","Tomorrow I'**m going to check** the engine with Marco.","","Plan: I'm going to + verbo","going"],
+["x04","V","¿Has terminado?","**Have** you **finished**?","","Pregunta: Have + you + verbo en -ed","perfect"],
+["x05","V","Ya he terminado.","I'**ve finished**.","","I've = I have + verbo en -ed","perfect"],
+["x06","V","Todavía no lo he visto.","I **haven't seen** it yet.","yet al final = todavía.","haven't + participio · see → seen","perfect"],
+["x07","V","Lo he revisado dos veces.","I'**ve checked** it twice.","twice = dos veces.","I've + verbo en -ed","perfect"],
+["x08","V","Ella no estaba en el trabajo ayer.","She **wasn't** at work yesterday.","","Pasado de is → was · negativo wasn't","be"],
+["x09","V","¿Qué estás haciendo?","What **are** you **doing**?","","Pregunta ahora mismo: What + are + you + -ing","cont"],
+["x10","V","¿Dónde pusiste la llave?","Where **did** you **put** the wrench?","","Pregunta en pasado: Where + did + you + verbo tal cual","past"],
+["x11","V","Si está fuera de límites, la rechazo.","If it's out of limits, I'**ll reject** it.","","If + presente, y luego will + verbo","will"],
+["x12","V","Tenemos que terminar esto antes de las 4.","We **have to finish** this before 4.","","Obligación: have to + verbo","have"],
+["x13","V","Él no vino ayer porque estaba enfermo.","He **didn't come** yesterday because he **was** sick.","","didn't + verbo tal cual · is → was","past"],
+["x14","V","¿Vas a trabajar el sábado?","**Are** you **going to work** on Saturday?","","Pregunta de plan: Are you going to + verbo","going"],
+["x15","V","Deberías preguntarle al inspector.","You **should ask** the inspector.","","should + verbo = deberías","can"],
+["x16","V","Estaba midiendo la pieza cuando llamaste.","I **was measuring** the part when you **called**.","","Lo que estabas haciendo: was + -ing","cont"],
 // ---------- Frases útiles ----------
 ["i01","F","Inspección","Está dentro de límites, puede seguir.","It's within limits, good to go.","\"Good to go\" = listo, adelante.","",""],
 ["i02","F","Inspección","Esto está fuera de límites.","This is out of limits.","","",""],
@@ -533,9 +573,23 @@ function norm(r){
   if(t==="V") return {id:r[0],t,cat:TYPE.V,q:r[2],a:r[3],note:r[4],hint:r[5],ref:r[6]?"r-"+r[6]:""};
   return {id:r[0],t,cat:r[2],q:r[3],a:r[4],note:r[5],hint:r[6],ref:r[7]?"r-"+r[7]:""};
 }
+// Dificultad 1 (fácil), 2 (medio), 3 (difícil)
+const P_EASY = ["p01","p02","p03","p04","p18","p21","p22","p26","p33"];
+const V_LEVEL = {be:1,there:1,imp:1,present:2,cont:2,can:2,past:3,will:3,going:3,have:3,perfect:3};
+function levelOf(c){
+  if(c.id[0]==="x") return 3;
+  if(c.t==="W") return 1;
+  if(c.t==="P") return P_EASY.includes(c.id)?1:2;
+  if(c.t==="V"){ if(["v07","v08","v09"].includes(c.id))return 1; if(["v23","v24"].includes(c.id))return 2; return V_LEVEL[c.ref.slice(2)]||2 }
+  const n=plain(c.a).length; return n<20?1:n<34?2:3;
+}
 const CARDS = DECK.map(norm);
+CARDS.forEach(c=>c.lvl=levelOf(c));
 const BY_ID = Object.fromEntries(CARDS.map(c=>[c.id,c]));
-const GOAL = 10, NEW_PER_DAY = 8;
+const GOAL = 10, NEW_MAX = 12;
+const LVL_NAME = {1:"FÁCIL",2:"MEDIO",3:"DIFÍCIL"};
+// 0–3 puntos: fácil · 4–6: medio · 7–9: difícil
+function tierFor(points){return points<4?1:points<7?2:3}
 const INTERVALS = [1,1,3,7,14,30];
 
 const $ = id => document.getElementById(id);
@@ -561,51 +615,59 @@ function save(){
     saving=saving.then(()=>dbRef.set({state:snap})).then(()=>{$("sync").textContent="Guardado en tu cuenta"}).catch(()=>{$("sync").textContent="Guardado solo en este dispositivo"})}
 }
 
-// Nuevas del día: se reparten por tipos (verbo, preposición, palabra, frase) para que haya variedad
-function pickNew(n,exclude){
-  const pools={V:[],P:[],W:[],F:[]};
-  CARDS.forEach(c=>{if(!S.cards[c.id]&&!exclude.includes(c.id))pools[c.t].push(c.id)});
-  const out=[];let k=0;const order=["V","P","W","F"];
-  while(out.length<n&&order.some(t=>pools[t].length)){const t=order[k++%4];if(pools[t].length)out.push(pools[t].shift())}
-  return out;
-}
-function buildQueue(){
-  const today=dayKey();
-  const due=Object.entries(S.cards).filter(([id,c])=>BY_ID[id]&&c.due<=today)
-    .sort((a,b)=>a[1].box-b[1].box||a[1].due.localeCompare(b[1].due)).map(([id])=>id);
-  const q=due.concat(pickNew(NEW_PER_DAY,due));
-  // Mezcla suave: las falladas siguen saliendo pronto, pero intercaladas con nuevas
-  const out=[];const fails=q.filter(id=>S.cards[id]&&S.cards[id].box===0),rest=q.filter(id=>!fails.includes(id));
-  while(fails.length||rest.length){if(fails.length)out.push(fails.shift());if(rest.length)out.push(rest.shift())}
-  return out;
+// Racha: si pasa un día entero sin completar, se pierde entera
+function checkStreak(){
+  if(S.streak>0&&S.lastDone&&S.lastDone<addDays(-1)){S.lost=S.streak;S.streak=0;save()}
 }
 function ensureDay(){
   const today=dayKey();
-  if(!S.day||S.day.date!==today){S.day={date:today,points:0,queue:buildQueue(),idx:0,log:[],extra:false,ver:2};save()}
-  else if(S.day.ver!==2){S.day.queue=buildQueue();S.day.idx=0;S.day.ver=2;save()}
+  checkStreak();
+  if(!S.day||S.day.date!==today||S.day.ver!==3){
+    const keep=S.day&&S.day.date===today?S.day:null;
+    S.day={date:today,points:keep?keep.points:0,log:keep?keep.log:[],extra:keep?keep.extra:false,cur:null,newCount:0,ver:3};
+    save();
+  }
 }
+// Elige la siguiente tarjeta según los puntos: primero repasos de ese nivel, luego nuevas, y variando el tipo
 function nextId(){
   const d=S.day;
-  while(d.idx<d.queue.length&&!BY_ID[d.queue[d.idx]]) d.idx++;
-  if(d.idx>=d.queue.length){
-    let more=pickNew(5,d.queue);
-    if(!more.length) more=[...new Set(d.log.filter(l=>!l.ok).map(l=>l.id))].filter(id=>BY_ID[id]);
-    if(!more.length) more=CARDS.map(c=>c.id).sort(()=>Math.random()-.5).slice(0,5);
-    d.queue.push(...more);
+  if(d.cur&&BY_ID[d.cur]) return d.cur;
+  const today=dayKey(), target=tierFor(d.points);
+  const recent=d.log.slice(-4).map(l=>l.id), okToday=new Set(d.log.filter(l=>l.ok).map(l=>l.id));
+  const lastType=d.log.length?BY_ID[d.log[d.log.length-1].id]?.t:null;
+  const free=c=>!recent.includes(c.id)&&!okToday.has(c.id);
+  const byVariety=list=>{const other=list.filter(c=>c.t!==lastType);return other.length?other:list};
+  let pick=null;
+  for(const lvl of [target,target-1,target+1,target-2,target+2].filter(l=>l>=1&&l<=3)){
+    const due=CARDS.filter(c=>c.lvl===lvl&&S.cards[c.id]&&S.cards[c.id].due<=today&&free(c))
+      .sort((a,b)=>S.cards[a.id].box-S.cards[b.id].box);
+    if(due.length){pick=byVariety(due)[0];break}
+    if(d.newCount<NEW_MAX){
+      const fresh=CARDS.filter(c=>c.lvl===lvl&&!S.cards[c.id]&&free(c));
+      if(fresh.length){pick=byVariety(fresh)[0];d.newCount++;break}
+    }
   }
-  return d.queue[d.idx];
+  // Ya no quedan repasos ni nuevas: práctica extra con tarjetas vistas de ese nivel
+  if(!pick){
+    const pool=CARDS.filter(c=>c.lvl===target&&!recent.includes(c.id));
+    const any=pool.length?pool:CARDS.filter(c=>!recent.includes(c.id));
+    pick=any[Math.floor(Math.random()*any.length)];
+  }
+  d.cur=pick.id; save();
+  return d.cur;
 }
 
 function answer(ok){
-  const d=S.day, id=d.queue[d.idx];
+  const d=S.day, id=d.cur;
   const c=S.cards[id]||(S.cards[id]={box:0,due:dayKey(),ok:0,fail:0});
   if(ok){c.ok++;c.box=Math.min(c.box+1,INTERVALS.length-1);c.due=addDays(INTERVALS[c.box])}
   else{c.fail++;c.box=0;c.due=addDays(1)}
   d.log.push({id,ok});
   d.points=Math.max(0,d.points+(ok?1:-1));
-  d.idx++;
+  d.cur=null;
   if(d.points>=GOAL&&!d.extra&&S.lastDone!==d.date){
-    S.streak=(S.lastDone===addDays(-1)?S.streak:0)+1;S.lastDone=d.date;
+    S.streak=(S.lastDone===addDays(-1)?S.streak:0)+1;S.lastDone=d.date;S.lost=0;
+    S.best=Math.max(S.best||0,S.streak);
   }
   save(); render();
 }
@@ -616,8 +678,16 @@ function render(){
   const d=S.day, closed=d.points>=GOAL&&!d.extra;
   $("pts").textContent=Math.min(d.points,GOAL);
   $("gauge").innerHTML=Array.from({length:GOAL},(_,i)=>`<i class="${i<d.points?"on":""}"></i>`).join("");
-  const alive=S.lastDone===d.date||S.lastDone===addDays(-1), st=alive?S.streak:0;
-  $("streak").textContent="Racha: "+st+(st===1?" día":" días");
+  const st=S.streak||0, doneToday=S.lastDone===d.date;
+  $("streakN").textContent=st;
+  $("streakL").innerHTML=(st===1?"DÍA":"DÍAS")+"<br>SEGUIDOS";
+  const tier=tierFor(d.points);
+  [1,2,3].forEach(t=>$("t"+t).classList.toggle("now",!closed&&t===tier));
+  const msg=$("streakMsg");
+  if(doneToday){msg.className="streak-msg good";msg.textContent=`Hoy completado: llevas ${st} ${st===1?"día":"días"} seguidos.`+(S.best>st?` Tu récord: ${S.best}.`:"")}
+  else if(S.lost){msg.className="streak-msg lost";msg.textContent=`Perdiste tu racha de ${S.lost} ${S.lost===1?"día":"días"}. Completa hoy y empieza otra.`}
+  else if(st>0){msg.className="streak-msg warn";msg.textContent=`Llevas ${st} ${st===1?"día":"días"}. Si hoy no llegas a 10 puntos, mañana la racha vuelve a 0.`}
+  else{msg.className="streak-msg";msg.textContent="Llega a 10 puntos hoy y suma tu primer día de racha. Si te saltas un día, la racha vuelve a 0."}
 
   $("play").hidden=closed; $("done").hidden=!closed;
   if(closed){
@@ -631,7 +701,7 @@ function render(){
     document.querySelector(".back").setAttribute("aria-hidden","true");
     document.querySelector(".front").removeAttribute("aria-hidden");
     $("cat").textContent=$("cat2").textContent=c.t==="F"?"Frase · "+c.cat:c.cat;
-    $("status").textContent=!s?"NUEVA":s.box===0?"REPASO · FALLADA":"REPASO";
+    $("status").textContent="NIVEL "+c.lvl+" · "+(!s?"NUEVA":s.box===0?"FALLADA":"REPASO");
     // Anverso
     const q=$("q"); q.classList.toggle("word",c.t==="W");
     if(c.t==="P") paintGap(q,c.q); else q.textContent=c.q;
@@ -690,7 +760,7 @@ $("flip").onclick=()=>{$("card").classList.add("flipped");
   document.querySelector(".back").removeAttribute("aria-hidden"); $("ok").focus({preventScroll:true})};
 $("ok").onclick=()=>answer(true);
 $("bad").onclick=()=>answer(false);
-$("extra").onclick=()=>{const d=S.day;d.extra=true;d.points=0;d.queue.push(...pickNew(NEW_PER_DAY,d.queue));save();render()};
+$("extra").onclick=()=>{const d=S.day;d.extra=true;d.points=0;d.cur=null;d.newCount=Math.min(d.newCount,NEW_MAX-6);save();render()};
 $("speak").onclick=()=>{if(tts&&current)tts.speak(enText(current),{language:"en",rate:.9}).catch(()=>{})};
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"&&!$("sheet").hidden){closeSheet();return}
