@@ -127,6 +127,8 @@ td,th{text-align:left;padding:6px 8px;border-top:1px solid var(--line);vertical-
 th{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;color:var(--muted);font-weight:600;border-top:0}
 td:first-child{font-weight:600;white-space:nowrap}
 .gold{background:var(--accent-bg);border-color:var(--accent)}
+.install-row{display:flex;flex-direction:column;gap:10px}
+.install-row .rule span b{font-family:inherit;font-size:inherit;letter-spacing:0;color:var(--ink)}
 </style>
 
 <div class="wrap">
@@ -137,6 +139,15 @@ td:first-child{font-weight:600;white-space:nowrap}
       <button class="small-btn" id="openSheet">Chuleta</button>
     </div>
   </header>
+
+  <div class="install-row" id="installRow" hidden>
+    <button class="primary" id="install">Descargar app</button>
+    <div class="rule" id="installHelp" hidden>
+      <b>CÓMO INSTALARLA</b>
+      <span><b>iPhone:</b> abre esta página en Safari, pulsa el botón Compartir (el cuadrado con la flecha) y elige «Añadir a pantalla de inicio».</span>
+      <span><b>Android:</b> en Chrome, abre el menú ⋮ y elige «Instalar aplicación» o «Añadir a pantalla de inicio».</span>
+    </div>
+  </div>
 
   <div class="gauge-row">
     <div class="gauge-label"><span>Puntos de hoy</span><span><b id="pts">0</b> / 10</span></div>
@@ -761,7 +772,33 @@ $("flip").onclick=()=>{$("card").classList.add("flipped");
 $("ok").onclick=()=>answer(true);
 $("bad").onclick=()=>answer(false);
 $("extra").onclick=()=>{const d=S.day;d.extra=true;d.points=0;d.cur=null;d.newCount=Math.min(d.newCount,NEW_MAX-6);save();render()};
-$("speak").onclick=()=>{if(tts&&current)tts.speak(enText(current),{language:"en",rate:.9}).catch(()=>{})};
+$("speak").onclick=()=>{
+  if(!current)return;
+  if(tts){tts.speak(enText(current),{language:"en",rate:.9}).catch(()=>{});return}
+  if("speechSynthesis" in window){
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(enText(current));u.lang="en-GB";u.rate=.9;
+    const v=speechSynthesis.getVoices().find(v=>/^en[-_]GB/i.test(v.lang))||speechSynthesis.getVoices().find(v=>/^en/i.test(v.lang));
+    if(v)u.voice=v;
+    speechSynthesis.speak(u);
+  }
+};
+
+// Versión pública (PWA): botón para instalar y voz del propio móvil
+if(window.CANALLA_PWA){
+  const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+  let deferred=null;
+  if(!standalone){
+    $("installRow").hidden=false;
+    addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e});
+    addEventListener("appinstalled",()=>{$("installRow").hidden=true});
+    $("install").onclick=async()=>{
+      if(deferred){deferred.prompt();const r=await deferred.userChoice.catch(()=>null);deferred=null;if(r&&r.outcome==="accepted")$("installRow").hidden=true}
+      else $("installHelp").hidden=!$("installHelp").hidden;
+    };
+  }
+  if("speechSynthesis" in window) $("speak").hidden=false;
+}
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"&&!$("sheet").hidden){closeSheet();return}
   if(e.target.tagName==="BUTTON"&&(e.key===" "||e.key==="Enter"))return;
